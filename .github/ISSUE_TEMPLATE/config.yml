@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: A bug in the framework itself
+    url: https://github.com/TeamGDB/PortableKit/issues
+    about: If you already know the cause is in PortableKit (the recompiler, kernel, renderer, audio or interface), report it there.

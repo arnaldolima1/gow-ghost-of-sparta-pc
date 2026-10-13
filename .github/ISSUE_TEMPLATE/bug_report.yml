@@ -1,0 +1,54 @@
+name: Bug report
+description: Something does not build, crashes, or behaves differently from the original game.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting. This project is a work in progress, so a clear report is the most useful thing you can give it.
+
+        **Do not attach or link game files of any kind:** no disc images, executables, decrypted ELFs, PRX modules, overlays, generated code, saves, audio or video dumps. Reports that include them will be deleted. Describe what you see in words, numbers and log lines instead. Please also remove your user name and home directory from any paths in the log.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to reproduce it
+      description: The steps from starting the program. Where in the game, and does it happen every time?
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: Operating system and version, CPU, GPU and driver.
+      placeholder: "e.g. macOS 15.5, Apple M1; Windows 11, Ryzen 5 5600, RTX 3060 driver 576.02; SteamOS 3.7"
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit
+      description: "The commit you built: the output of `git describe --always --dirty`, or the version the in-game menu shows. Say if you changed anything."
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: "Run the program from a terminal and save what it prints, e.g. `out/bin/<Game>Native > run.log 2>&1`. Paste it here or attach the text file. For a crash, include the end of the log."
+      render: shell
+    validations:
+      required: true
+  - type: checkboxes
+    id: no-game-data
+    attributes:
+      label: Before you submit
+      options:
+        - label: I have not attached or linked any game files, and the log contains no personal paths or names.
+          required: true

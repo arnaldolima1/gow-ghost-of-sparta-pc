@@ -21,7 +21,7 @@ A native port of **God of War: Ghost of Sparta** (PlayStation Portable) made by 
 | Recompiled | 22159 functions, 1036824 blocks, 254 C++ units |
 | Addresses the recompiler cannot lower | the game's own 44 `break` traps, and nothing else |
 
-Known gaps: the GE's stencil test is not implemented (the game uses it in its bloom and in some scene passes), and nothing past the first level has been checked for graphical errors.
+[`docs/MISSING.md`](docs/MISSING.md) has what is known to be missing.
 
 ## How it works
 
@@ -38,6 +38,12 @@ What this port needed beyond a profile of constants:
 - **One flip a vblank.** The game's frame loop waits only on the GE, which takes no emulated time here, so it flipped about ten times a vblank and then stalled for 100 ms at once. The profile caps it at one flip a vblank (`flips_wait_for_vblank`), the same idea PPSSPP applies to the God of War games, and runs it at the game's own 60 frames a second.
 
 The two framework changes live on the `sparta` branch of [a fork of PortableKit](https://github.com/arnaldolima1/PortableKit/tree/sparta), which this repository uses as its submodule.
+
+## Playing a release
+
+A release is a macOS disk image (Apple Silicon) with `Sparta.app` and a read-me: drag Sparta into Applications, allow it once in System Settings > Privacy & Security (it is signed ad hoc, not notarized), and pick your disc image at the first start. No build tools, no recompiling. Releases are on the [releases page](https://github.com/arnaldolima1/gow-ghost-of-sparta-pc/releases).
+
+To make one yourself, after the generate step below: `scripts/release_macos.sh` builds a Release configuration with PortableKit's bundled FFmpeg and packs `out/release-macos/dist/`. PortableKit checks the program against the macOS 13 SDK; without it installed the script checks against the newest macOS 15 SDK instead, so macOS 13 and 14 are then not verified.
 
 ## Building and playing
 
