@@ -33,7 +33,7 @@ echo running > "$status"
     cmake -S "$repo_dir" -B "$repo_dir/out-release" -G Ninja -DCMAKE_BUILD_TYPE=Release \
         -DPORTABLEKIT_RELEASE=ON -DPORTABLEKIT_FFMPEG=bundled &&
         cmake --build "$repo_dir/out-release" --target SpartaNative -j4 &&
-        "$repo_dir/portablekit/scripts/release_macos.sh" --game "$repo_dir" "$repo_dir/out-release"
+        bash "$repo_dir/portablekit/scripts/release_macos.sh" --game "$repo_dir" "$repo_dir/out-release"
     code=$?
     echo "finished $(date '+%Y-%m-%d %H:%M:%S') exit=$code"
     exit $code
