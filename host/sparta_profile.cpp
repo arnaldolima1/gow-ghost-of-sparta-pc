@@ -22,6 +22,27 @@ constexpr SaveFolder kSaveFolders[] = {
     {"UCES01401DATA00", "Game data", true},
 };
 
+// The launcher: charcoal, with Spartan red. Its art is the player's, never
+// the repository's: background.jpg and logo.jpg in <data>/launcher/ when they
+// put them there, else PIC1.PNG and ICON0.PNG from their disc image.
+constexpr LauncherTheme kLauncher{
+    .title = "GOD OF WAR",
+    .subtitle = "GHOST OF SPARTA",
+    .background = 0x161414u,
+    .sidebar = 0x0F0E0Eu,
+    .panel = 0x1C1919u,
+    .accent = 0xA3161Au,
+    .accent_bright = 0xD8343Au,
+    .text = 0xE8E4DFu,
+    .text_dim = 0x9C9590u,
+    // Kratos stands to the right with his head near the top.
+    .backdrop_focus_y = 0.03f,
+    .logo_on_black = true,
+    .project_url = "https://github.com/arnaldolima1/gow-ghost-of-sparta-pc",
+    .issues_url = "https://github.com/arnaldolima1/gow-ghost-of-sparta-pc/issues",
+    .credits = "An unofficial port, played from your own copy of the game.",
+};
+
 } // namespace
 
 const GameProfile &game() {
@@ -58,6 +79,8 @@ const GameProfile &game() {
         .save_folders = kSaveFolders,
 
         .adhoc_product_code = "UCES01401",
+        // The game has no multiplayer: no Network page.
+        .adhoc_play = false,
 
         // The game's frame loop waits only on the GE, so without this it
         // flips ten times a vblank and the busy clock then holds it 100 ms.
@@ -68,6 +91,8 @@ const GameProfile &game() {
         // A European console: English, confirm on cross.
         .system_language = 1u,
         .confirm_button = 1u,
+
+        .launcher = &kLauncher,
     };
     return profile;
 }

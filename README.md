@@ -79,7 +79,7 @@ The two framework changes live on the `sparta` branch of [a fork of PortableKit]
 | Graphics | Vulkan, through [MoltenVK](https://github.com/KhronosGroup/MoltenVK) on macOS; shaders in GLSL compiled to SPIR-V with `glslangValidator` |
 | Window, input, audio output | [SDL3](https://github.com/libsdl-org/SDL) |
 | Music and movies | [FFmpeg](https://ffmpeg.org/) (LGPL, ATRAC3/ATRAC3plus and H.264 decoders only) |
-| Interface | [Dear ImGui](https://github.com/ocornut/imgui) — first-run setup and the in-game menu |
+| Interface | [Dear ImGui](https://github.com/ocornut/imgui) — first-run setup, the launcher and the in-game menu |
 | Build | CMake + Ninja, `ccache` |
 | Packaging | PortableKit's release scripts: ad-hoc-signed `.app` in a `.dmg` |
 
@@ -166,6 +166,8 @@ The version comes from `VERSION`. When that version is already published, `relea
 | START / SELECT | <kbd>Enter</kbd> / <kbd>Backspace</kbd> |
 
 A PlayStation or Xbox gamepad works too. <kbd>Esc</kbd> (or L3+R3) opens the menu: controls, video, audio, saves.
+
+Before the game starts, a launcher has the same settings, quick settings and a Play button; it backs your saves up each time you play. The interface is in English or Brazilian Portuguese (System → Language). `--play` skips the launcher once, `--launcher` brings it back if you turned it off.
 
 ## Useful switches
 

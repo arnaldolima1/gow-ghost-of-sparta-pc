@@ -15,6 +15,11 @@
 # Sparta.app, signs it ad hoc and packs the disk image), and copies the
 # results to release/macos/.
 #
+# The launcher's art (background.jpg, logo.jpg) is not in the repository: it
+# is taken from SPARTA_LAUNCHER_ART, by default ../work/data/launcher beside
+# the checkout, and shipped in Sparta.app/Contents/Resources/launcher. Without
+# it the app shows the art of the player's own disc image.
+#
 # PortableKit checks the program's imports against the SDK of its deployment
 # target (macOS 13). Without that SDK installed, PORTABLEKIT_CHECK_SDK names
 # another one; by default the newest macOS 15 SDK of the Command Line Tools.
@@ -41,6 +46,17 @@ if [[ -z "${PORTABLEKIT_CHECK_SDK:-}" ]] && ! ls -d /Library/Developer/CommandLi
     [[ -n "$sdk" ]] && export PORTABLEKIT_CHECK_SDK="$sdk"
 fi
 export PORTABLEKIT_RELEASE_WORK="$release_work_dir"
+launcher_art="${SPARTA_LAUNCHER_ART:-$repo_dir/../work/data/launcher}"
+rm -rf "$release_build_dir/bin/launcher"
+if [[ -f "$launcher_art/background.jpg" || -f "$launcher_art/logo.jpg" ]]; then
+    mkdir -p "$release_build_dir/bin/launcher"
+    for art in background.jpg logo.jpg; do
+        [[ -f "$launcher_art/$art" ]] && cp "$launcher_art/$art" "$release_build_dir/bin/launcher/"
+    done
+    export RELEASE_RESOURCES="launcher=launcher"
+else
+    echo "note: no launcher art in $launcher_art; the app shows the disc image's"
+fi
 mkdir -p "$logs_dir"
 echo running > "$logs_dir/build.status"
 {
