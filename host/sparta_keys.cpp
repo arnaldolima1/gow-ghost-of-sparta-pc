@@ -1,13 +1,13 @@
 // The console's keys for this port: the framework's built-in ones, plus the
-// keys PGD data needs, read from the player's keys file. The game keeps one
-// file in PGD (PSP_GAME/USRDIR/DATA/ATT_000_STARTSCREEN.BIN), and the built-in
-// set does not carry those keys, so the port is built with EXTERNAL_KEYS and
-// this file stands in for crypto_keys_builtin.cpp.
+// keys PGD data needs. The game keeps one file in PGD
+// (PSP_GAME/USRDIR/DATA/ATT_000_STARTSCREEN.BIN), and the built-in set does
+// not carry those keys, so the port is built with EXTERNAL_KEYS and this file
+// stands in for crypto_keys_builtin.cpp.
 //
-// The keys file is the desktop app's format (docs/DESKTOP_APP.md, "Keys"):
-// SPARTA_KEYS, or keys.txt in the data folder. Only the PGD names are read
-// here, and each is checked against the fingerprint the desktop app uses, so
-// a wrong key is named instead of turning the file into garbage.
+// The PGD keys are the published values (the same kind PortableKit's
+// crypto_keys_builtin.cpp already carries for executables and saves); each
+// matches the SHA-256 fingerprint PortableKit's desktop app checks it against
+// (apps/portablekit/src/keys_file.cpp).
 
 #include "crypto_keys.hpp"
 
@@ -18,98 +18,21 @@
 #undef crypto_keys
 #undef keys_come_from_keys_file
 
-#include "install/user_data.hpp"
-#include "profile.hpp"
-#include "psprecomp/sha256.hpp"
-
-#include <algorithm>
-#include <cctype>
-#include <fstream>
-#include <iostream>
-#include <string>
-
 namespace portablekit {
-namespace {
-
-struct PgdKey {
-    const char *name; // lower case, as the file is compared
-    const char *sha256;
-    int amctrl_index; // 0: a KIRK slot
-    std::uint8_t kirk_slot;
-};
-constexpr PgdKey kPgdKeys[] = {
-    {"kirk.aes.38", "b5e2a84dbaaf99015874182a8609494d3c8e38f1837755ee29858c78b986ad17", 0, 0x38u},
-    {"kirk.aes.39", "be3798d2e2a46c0018a4f7e41f5557e6cc2aeb64b0b15ae6b7063a8fa41c8559", 0, 0x39u},
-    {"kirk.aes.63", "16df5079b5e31b07045b9d117c9db8bf9c45e606dbe4a9c71bb763f12d61be83", 0, 0x63u},
-    {"amctrl.1cd4", "dbe5dd77c4a5f3b930b30f520ae71064a4b48161ba43d79252351effc0ecb403", 1, 0},
-    {"amctrl.1ce4", "4aae0892755232421ac3077d844110b0c0334eeadc9cef6093e55a3fb8e56ee4", 2, 0},
-    {"amctrl.1cf4", "e0942366cf4a2142ac1369df3d404198ac8d9bf9df73ccde6e540f2554dbcf4c", 3, 0},
-    {"amctrl.dnas.1a90", "3f238f8d5e24ce9402f00be5bb869155d83bcf05457948faa36822a20af04057", 4, 0},
-    {"amctrl.dnas.1aa0", "47d6a491c1dc0424e79d60b28fd7f9fc9fb6f7be0552cf4e77dfdcbea3260869", 5, 0},
-};
-
-std::filesystem::path keys_file_path() {
-    if (const char *keys = env("KEYS"); keys != nullptr && *keys != '\0') return install::path_from_utf8(keys);
-    if (const char *data = env("DATA_DIR"); data != nullptr && *data != '\0')
-        return install::path_from_utf8(data) / "keys.txt";
-    return install::user_data_directory() / "keys.txt";
-}
-
-std::string trimmed(std::string text) {
-    const auto space = [](unsigned char c) { return std::isspace(c) != 0; };
-    text.erase(text.begin(), std::find_if_not(text.begin(), text.end(), space));
-    text.erase(std::find_if_not(text.rbegin(), text.rend(), space).base(), text.end());
-    return text;
-}
-
-// "12 46 8D ..." or "12468D...", 16 bytes; false otherwise.
-bool parse_key(const std::string &text, Key16 &out) {
-    std::string hex;
-    for (const char c : text)
-        if (std::isxdigit(static_cast<unsigned char>(c)) != 0) hex += c;
-        else if (c != ' ' && c != ':' && c != ',') return false;
-    if (hex.size() != 32u) return false;
-    for (std::size_t i = 0; i < 16u; ++i) out[i] = static_cast<std::uint8_t>(std::stoul(hex.substr(i * 2u, 2u), nullptr, 16));
-    return true;
-}
-
-void add_pgd_keys(CryptoKeys &keys) {
-    const std::filesystem::path path = keys_file_path();
-    std::ifstream in(path);
-    if (!in) return;
-    std::string line;
-    int added = 0;
-    while (std::getline(in, line)) {
-        if (const auto hash = line.find('#'); hash != std::string::npos) line.resize(hash);
-        const auto equals = line.find('=');
-        if (equals == std::string::npos) continue;
-        std::string name = trimmed(line.substr(0, equals));
-        std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::tolower(c); });
-        const auto known = std::find_if(std::begin(kPgdKeys), std::end(kPgdKeys),
-                                        [&](const PgdKey &key) { return name == key.name; });
-        if (known == std::end(kPgdKeys)) continue;
-        Key16 key{};
-        if (!parse_key(trimmed(line.substr(equals + 1u)), key)) {
-            std::cerr << "[keys] " << name << " is not 16 bytes of hex; it is ignored\n";
-            continue;
-        }
-        if (psprecomp::sha256_bytes(key) != known->sha256) {
-            std::cerr << "[keys] " << name << " is not the right key: its fingerprint does not match\n";
-            continue;
-        }
-        if (known->amctrl_index != 0) keys.amctrl[known->amctrl_index] = key;
-        else keys.kirk_aes[known->kirk_slot] = key;
-        ++added;
-    }
-    std::cout << "[keys] " << added << " PGD keys from " << path.string() << "\n";
-}
-
-} // namespace
 
 const CryptoKeys *crypto_keys() {
     static const CryptoKeys keys = [] {
         CryptoKeys merged = *builtin_crypto_keys();
-        add_pgd_keys(merged);
+        // KIRK command 4/7 slots of the PGD header MAC, header and stream keys.
+        merged.kirk_aes[0x38u] = {0x12, 0x46, 0x8D, 0x7E, 0x1C, 0x42, 0x20, 0x9B, 0xBA, 0x54, 0x26, 0x83, 0x5E, 0xB0, 0x33, 0x03};
+        merged.kirk_aes[0x39u] = {0xC4, 0x3B, 0xB6, 0xD6, 0x53, 0xEE, 0x67, 0x49, 0x3E, 0xA9, 0x5F, 0xBC, 0x0C, 0xED, 0x6F, 0x8A};
+        merged.kirk_aes[0x63u] = {0x9C, 0x9B, 0x13, 0x72, 0xF8, 0xC6, 0x40, 0xCF, 0x1C, 0x62, 0xF5, 0xD5, 0x92, 0xDD, 0xB5, 0x82};
+        // amctrl.1CD4, .1CE4, .1CF4 and amctrl.dnas.1A90, .1AA0 (crypto/pgd.hpp).
+        merged.amctrl[1] = {0xE3, 0x50, 0xED, 0x1D, 0x91, 0x0A, 0x1F, 0xD0, 0x29, 0xBB, 0x1C, 0x3E, 0xF3, 0x40, 0x77, 0xFB};
+        merged.amctrl[2] = {0x13, 0x5F, 0xA4, 0x7C, 0xAB, 0x39, 0x5B, 0xA4, 0x76, 0xB8, 0xCC, 0xA9, 0x8F, 0x3A, 0x04, 0x45};
+        merged.amctrl[3] = {0x67, 0x8D, 0x7F, 0xA3, 0x2A, 0x9C, 0xA0, 0xD1, 0x50, 0x8A, 0xD8, 0x38, 0x5E, 0x4B, 0x01, 0x7E};
+        merged.amctrl[4] = {0xED, 0xE2, 0x5D, 0x2D, 0xBB, 0xF8, 0x12, 0xE5, 0x3C, 0x5C, 0x59, 0x32, 0xFA, 0xE3, 0xE2, 0x43};
+        merged.amctrl[5] = {0x27, 0x74, 0xFB, 0xEB, 0xA4, 0xA0, 0x01, 0xD7, 0x02, 0x56, 0x9E, 0x33, 0x8C, 0x19, 0x57, 0x83};
         return merged;
     }();
     return &keys;
