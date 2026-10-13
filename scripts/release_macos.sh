@@ -6,7 +6,9 @@
 # Needs the recompiled code in generated/ (scripts/generate.sh). Builds a
 # Release configuration with PortableKit's bundled FFmpeg in out-release/,
 # then runs PortableKit's release script, which assembles Sparta.app, signs it
-# ad hoc and writes the disk image to out/release-macos/dist.
+# ad hoc and writes the disk image to out/release-macos/dist. The results --
+# Sparta.app, the disk image, its checksums and the FFmpeg source it bundles --
+# are then copied to release/macos/, which is never committed.
 # Like scripts/build.sh, it logs to ../work/build.log and ../work/build.status.
 #
 # PortableKit checks the program's imports against the SDK of its deployment
@@ -33,7 +35,14 @@ echo running > "$status"
     cmake -S "$repo_dir" -B "$repo_dir/out-release" -G Ninja -DCMAKE_BUILD_TYPE=Release \
         -DPORTABLEKIT_RELEASE=ON -DPORTABLEKIT_FFMPEG=bundled &&
         cmake --build "$repo_dir/out-release" --target SpartaNative -j4 &&
-        bash "$repo_dir/portablekit/scripts/release_macos.sh" --game "$repo_dir" "$repo_dir/out-release"
+        bash "$repo_dir/portablekit/scripts/release_macos.sh" --game "$repo_dir" "$repo_dir/out-release" &&
+        {
+            release="$repo_dir/release/macos"
+            rm -rf "$release" && mkdir -p "$release" &&
+                cp -R "$repo_dir/out/release-macos/stage/Sparta.app" "$release/" &&
+                cp "$repo_dir/out/release-macos/dist/"* "$release/" &&
+                echo && echo "release: $release" && ls -1 "$release"
+        }
     code=$?
     echo "finished $(date '+%Y-%m-%d %H:%M:%S') exit=$code"
     exit $code
