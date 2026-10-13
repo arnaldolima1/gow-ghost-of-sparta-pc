@@ -59,6 +59,12 @@ const GameProfile &game() {
 
         .adhoc_product_code = "UCES01401",
 
+        // The game's frame loop waits only on the GE, so without this it
+        // flips ten times a vblank and the busy clock then holds it 100 ms.
+        // At most one flip a vblank: the game's own frame is one vblank.
+        .frame_vblanks = 1,
+        .flips_wait_for_vblank = true,
+
         // A European console: English, confirm on cross.
         .system_language = 1u,
         .confirm_button = 1u,
