@@ -6,5 +6,6 @@ project(Sparta VERSION 0.1.0 LANGUAGES CXX)
 add_subdirectory(portablekit)
 
 portablekit_add_game(SpartaNative
+    EXTERNAL_KEYS
     PROFILE_DIR "${CMAKE_CURRENT_SOURCE_DIR}"
-    SOURCES host/sparta_profile.cpp)
+    SOURCES host/sparta_profile.cpp host/sparta_keys.cpp)

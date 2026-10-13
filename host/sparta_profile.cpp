@@ -13,10 +13,13 @@
 namespace portablekit {
 namespace {
 
-// Not confirmed yet: the executable builds its save names at run time (it
-// names "DATA00" but no game name). Check with SPARTA_TRACE_SAVEDATA.
+// The executable builds its save names at run time: the game name is the disc
+// id, and the save names are its own. The trace shows it loading
+// "UCES01401PROFILE00" at boot; "DATA00" is the only other save name the
+// executable contains, and has not been seen in a trace yet.
 constexpr SaveFolder kSaveFolders[] = {
-    {"UCES01401", "Game data", true},
+    {"UCES01401PROFILE00", "Profile", true},
+    {"UCES01401DATA00", "Game data", true},
 };
 
 } // namespace
