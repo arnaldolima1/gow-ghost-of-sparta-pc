@@ -1,0 +1,7 @@
+# Nothing derived from the game's own files belongs in this repository.
+/game/
+/generated/
+/overlays/
+/analysis/
+/progress/
+/out/
