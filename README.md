@@ -37,7 +37,7 @@ What this port needed beyond a profile of constants:
 - **New render targets start as zeros.** The game's bloom is drawn in steps side by side inside one 512-pixel-wide buffer and samples around what it drew; undefined target contents showed as a magenta tint over the whole picture.
 - **One flip a vblank.** The game's frame loop waits only on the GE, which takes no emulated time here, so it flipped about ten times a vblank and then stalled for 100 ms at once. The profile caps it at one flip a vblank (`flips_wait_for_vblank`), the same idea PPSSPP applies to the God of War games, and runs it at the game's own 60 frames a second.
 
-The two framework changes live on a fork of PortableKit, which this repository uses as its submodule.
+The two framework changes live on the `sparta` branch of [a fork of PortableKit](https://github.com/arnaldolima1/PortableKit/tree/sparta), which this repository uses as its submodule.
 
 ## Building and playing
 
@@ -50,8 +50,8 @@ brew install cmake ninja ccache python sdl3 molten-vk vulkan-loader vulkan-heade
 Then:
 
 ```bash
-git clone --recursive https://github.com/arnaldolima1/Sparta.git
-cd Sparta
+git clone --recursive https://github.com/arnaldolima1/gow-ghost-of-sparta-pc.git
+cd gow-ghost-of-sparta-pc
 cmake -S . -B out -G Ninja -DCMAKE_BUILD_TYPE=Release -DPORTABLEKIT_FFMPEG=system
 cmake --build out -j4                                   # the bootstrap: minutes
 out/bin/SpartaNative --install /path/to/your/UCES01401.iso --in-place
