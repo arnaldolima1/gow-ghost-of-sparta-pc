@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Recompile the game's executable into the AOT corpus.
 #
-#   scripts/generate.sh [build_dir]
+#   scripts/generate.sh [build_dir]     (build/dev by default)
 #
 # Needs an executable prepared by `SpartaNative --install <image.iso>`, which
 # writes EBOOT.ELF into the per-user data directory, or a game directory named
@@ -12,8 +12,11 @@
 # interpreter runs the game without any of this.
 set -euo pipefail
 
-repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
-build_dir="${1:-$repo_dir/out}"
+source "$(dirname "$0")/common.sh"
+build_dir="${1:-$dev_dir}"
+if [[ ! -f "$build_dir/build.ninja" ]]; then
+    cmake -S "$repo_dir" -B "$build_dir" -G Ninja -DCMAKE_BUILD_TYPE=Release -DPORTABLEKIT_FFMPEG=system
+fi
 
 elf="${SPARTA_EBOOT:-}"
 if [[ -z "$elf" ]]; then
@@ -21,8 +24,7 @@ if [[ -z "$elf" ]]; then
         "${SPARTA_GAME_DIR:-}/EBOOT.ELF" \
         "${SPARTA_DATA_DIR:-}/EBOOT.ELF" \
         "$HOME/Library/Application Support/Sparta/UCES01401/EBOOT.ELF" \
-        "$HOME/.local/share/Sparta/UCES01401/EBOOT.ELF" \
-        "$repo_dir/../work/data/EBOOT.ELF"; do
+        "$HOME/.local/share/Sparta/UCES01401/EBOOT.ELF"; do
         if [[ -f "$candidate" ]]; then elf="$candidate"; break; fi
     done
 fi
@@ -34,8 +36,8 @@ if [[ ! -f "$elf" ]]; then
 fi
 
 cmake --build "$build_dir" --target psp_analyze psp_recomp
-mkdir -p "$repo_dir/analysis" "$repo_dir/generated"
-"$build_dir/portablekit/psp_analyze" "$elf" "$repo_dir/analysis/report.json"
+mkdir -p "$analysis_dir" "$repo_dir/generated"
+"$build_dir/portablekit/psp_analyze" "$elf" "$analysis_dir/report.json"
 # Regenerated in place: psp_recomp rewrites only units whose text changed and
 # removes units that no longer exist, so unchanged units keep their timestamps
 # and are not recompiled.

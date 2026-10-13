@@ -87,26 +87,30 @@ The two framework changes live on the `sparta` branch of [a fork of PortableKit]
 
 ```text
 .
-├── CMakeLists.txt          # adds PortableKit and declares the SpartaNative target
+├── CMakeLists.txt            # adds PortableKit and declares the SpartaNative target
+├── VERSION                   # the version the next release gets
 ├── host/
-│   ├── sparta_profile.cpp  # the game's profile: disc id, hashes, memory, saves, quirks
-│   └── sparta_keys.cpp     # the console keys, with the PGD keys this game needs
+│   ├── sparta_profile.cpp    # the game's profile: disc id, hashes, memory, saves, quirks
+│   └── sparta_keys.cpp       # the console keys, with the PGD keys this game needs
 ├── scripts/
-│   ├── generate.sh         # recompile the game's executable into generated/
-│   ├── build.sh            # build, logging to ../work/build.log
-│   ├── build_status.sh     # is that build running, done or failed?
-│   ├── run.sh              # play
-│   └── release_macos.sh    # build a Release and pack the .dmg
+│   ├── generate.sh           # recompile the game's executable into generated/
+│   ├── build.sh              # the everyday build, in build/dev/
+│   ├── build_status.sh       # is the last build running, done or failed?
+│   ├── run.sh                # play
+│   ├── release_macos.sh      # build a release: Sparta.app and the .dmg in release/macos/
+│   ├── publish_release.sh    # put that release on GitHub
+│   └── common.sh             # the paths the scripts share
 ├── tools/
-│   └── decrypt_eboot.cpp   # development helper: decrypt EBOOT.BIN, print its hash
-├── packaging/              # icon, release description, .dmg read-me, third-party notices
+│   └── decrypt_eboot.cpp     # development helper: decrypt EBOOT.BIN, print its hash
+├── packaging/                # icon, release description, .dmg read-me, third-party notices
 ├── docs/
-│   └── MISSING.md          # what is known to be missing
-├── portablekit/            # submodule: the recompiler and runtime (fork, branch sparta)
+│   └── MISSING.md            # what is known to be missing
+├── portablekit/              # submodule: the recompiler and runtime (fork, branch sparta)
 │
 │   # created locally, never committed:
-├── generated/              # the recompiled game code
-└── out/                    # build output
+├── generated/                # the recompiled game code
+├── build/                    # dev/, release/, logs/, analysis/ ...
+└── release/macos/            # a finished release
 ```
 
 ## Playing a release
@@ -126,19 +130,27 @@ Then:
 ```bash
 git clone --recursive https://github.com/arnaldolima1/gow-ghost-of-sparta-pc.git
 cd gow-ghost-of-sparta-pc
-cmake -S . -B out -G Ninja -DCMAKE_BUILD_TYPE=Release -DPORTABLEKIT_FFMPEG=system
-cmake --build out -j4                                   # the bootstrap: minutes
-out/bin/SpartaNative --install /path/to/your/UCES01401.iso --in-place
-scripts/generate.sh out                                 # recompile the game's code to C++: ~3 minutes
-scripts/build.sh                                        # compile it: ~15 minutes on an M4
-scripts/run.sh                                          # play
+scripts/build.sh                                                  # the bootstrap: minutes
+build/dev/bin/SpartaNative --install /path/to/your/UCES01401.iso --in-place
+scripts/generate.sh                                               # recompile the game's code to C++: ~3 minutes
+scripts/build.sh                                                  # compile it: ~15 minutes on an M4
+scripts/run.sh                                                    # play
 ```
 
 > [!TIP]
 > - **Forgot `--recursive`?** Run `git submodule update --init --recursive`.
 > - **`--in-place`** plays from the disc image where it is instead of copying it.
 > - **Without the generate step** the game still runs, under PortableKit's interpreter, about twenty times slower: a development tool, not a way to play.
-> - `scripts/release_macos.sh` packs your own `.dmg` into `out/release-macos/dist/`. PortableKit checks the program against the macOS 13 SDK; without it installed the script checks against the newest macOS 15 SDK instead, so macOS 13 and 14 are then not verified.
+> - `scripts/build_status.sh` says whether the last build is still running, finished or failed; its log is `build/logs/build.log`.
+
+### Making a release
+
+```bash
+scripts/release_macos.sh     # Sparta.app, the .dmg and checksums, in release/macos/
+scripts/publish_release.sh   # tag it and put it on the GitHub releases page
+```
+
+The version comes from `VERSION`. When that version is already published, `release_macos.sh` raises its last number first (0.1.0 → 0.1.1 → 0.1.2) and commits the change, so every release gets a new version. PortableKit checks the program against the macOS 13 SDK; without it installed the script checks against the newest macOS 15 SDK instead, so macOS 13 and 14 are then not verified.
 
 ## Controls
 

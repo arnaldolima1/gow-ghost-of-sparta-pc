@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
-project(Sparta VERSION 0.1.0 LANGUAGES CXX)
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" SPARTA_VERSION LIMIT_COUNT 1)
+project(Sparta VERSION ${SPARTA_VERSION} LANGUAGES CXX)
 
 # PortableKit brings the recompiler, the runtime and the system layer, and
 # defines portablekit_add_game().

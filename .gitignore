@@ -2,9 +2,12 @@
 /game/
 /generated/
 /overlays/
-/analysis/
 /progress/
+# Local build output (see scripts/common.sh).
+/build/
+/release/
+# Older layouts.
 /out/
 /out-release/
-/release/
+/analysis/
 .DS_Store

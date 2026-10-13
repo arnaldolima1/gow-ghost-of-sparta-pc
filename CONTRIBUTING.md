@@ -9,11 +9,11 @@ Almost nothing lives in this repository: it is the game's profile (`host/sparta_
 ## The rules
 
 - **English only** in everything committed, and in issues and pull requests.
-- **No game data, ever.** No disc images, executables (`EBOOT.BIN`, `BOOT.BIN`, decrypted ELFs, PRX modules), code generated from the game (`generated/`), saves, or audio or video taken from the game. Not in commits, not in issues, not in pull requests, not as attachments. `.gitignore` covers `game/`, `generated/`, `overlays/`, `analysis/` and `out/`; do not work around it.
+- **No game data, ever.** No disc images, executables (`EBOOT.BIN`, `BOOT.BIN`, decrypted ELFs, PRX modules), code generated from the game (`generated/`), saves, or audio or video taken from the game. Not in commits, not in issues, not in pull requests, not as attachments. `.gitignore` covers `game/`, `generated/`, `overlays/`, `build/` and `release/`; do not work around it.
 - **Nothing personal.** No home paths, user names, machine names, private e-mail addresses or IP addresses in anything committed or pasted. Check logs before you paste them.
 - **Write it yourself.** Public documentation and observed behaviour are fine to learn from; code from a project whose licence is incompatible with MIT — PPSSPP and other GPL emulators included — must never be copied, adapted or translated line by line. Constants, offsets and format facts are fine.
 - **Trace the game; don't recall the hardware.** Turn on the relevant `SPARTA_TRACE_*` switch, read what the game does, then write the code.
-- **Bound every run.** `timeout 90 out/bin/SpartaNative`; never leave the game running.
+- **Bound every run.** `timeout 90 build/dev/bin/SpartaNative`; never leave the game running.
 - **Say what you did not verify.**
 
 ## How to send a change
