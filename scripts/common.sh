@@ -7,6 +7,7 @@
 #   build/analysis/       the analyser's report on the game's executable
 #   build/logs/           build.log and build.status of the last build
 #   release/macos/        a finished release: Sparta.app, the .dmg, checksums
+#   release/android/      its APK (scripts/release_android.sh)
 #
 # None of it is committed. The game's own data folder is SPARTA_DATA_DIR,
 # else ../work/data beside the repository when it exists (a development
@@ -19,6 +20,7 @@ release_work_dir="$build_root/release-macos"
 analysis_dir="$build_root/analysis"
 logs_dir="$build_root/logs"
 release_dir="$repo_dir/release/macos"
+android_release_dir="$repo_dir/release/android"
 version_file="$repo_dir/VERSION"
 if [[ -z "${SPARTA_DATA_DIR:-}" && -d "$repo_dir/../work/data" ]]; then
     export SPARTA_DATA_DIR="$repo_dir/../work/data"
