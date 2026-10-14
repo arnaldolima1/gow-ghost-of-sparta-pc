@@ -1,6 +1,6 @@
 # Building on Windows
 
-No Windows build of Sparta has been made yet. PortableKit builds on Windows and its tests pass there in continuous integration (MSVC 19.44), and another port on PortableKit (Yakumo) has been run on Windows; this port has only been built and run on macOS and Android. This page says how to build it so that it runs **fast**, and what to check on the first run. Written for whoever does it, a person or a coding agent; update it with what actually happened.
+**First built and run on Windows on 2026-10-14** (Windows 11, AMD Radeon RX 7600, 16 GB, clang-cl 19.1.5 from VS 2022 Build Tools, Ninja, ccache): see [First build](#first-build-2026-10-14) at the end. Before that this port had only been built and run on macOS and Android. This page says how to build it so that it runs **fast**, and what to check on the first run. Written for whoever does it, a person or a coding agent; update it with what actually happened.
 
 ## The one choice that matters for speed: clang-cl, not cl.exe
 
@@ -9,7 +9,7 @@ Build with **clang-cl** (LLVM's MSVC-compatible driver, part of Visual Studio) a
 - The recompiled game code (`generated/`, 254 files of up to 9000 lines, each one huge C++ function) is the part whose speed matters. Every measurement and every optimization in [PERFORMANCE.md](PERFORMANCE.md) was made with clang (Apple's on the Mac, the NDK's on Android). With clang-cl the Windows build gets the same optimizer.
 - MSVC has a history with this code: PortableKit removed an earlier register cache because MSVC's optimizer never finished on the large units it produced and each compile passed 2 GB (comment in `generate_auto()`, `portablekit/tools/codegen_main.cpp`). PortableKit compiles generated units under MSVC with `/Ob0` (no inlining), which is safe but slow.
 
-**One change is needed in PortableKit for clang-cl.** CMake sets `MSVC` for clang-cl too, so `portablekit/cmake/PortableKit.cmake` gives the generated units `/O2 /Ob0 /bigobj` (the `if(MSVC)` near "generated AOT units", and again for overlay libraries further down). Under clang-cl, `/Ob0` turns off inlining of everything not marked always-inline. Use `/O2 /bigobj` without `/Ob0` when the compiler is clang-cl (`CMAKE_CXX_COMPILER_ID STREQUAL "Clang"`), and measure both if in doubt. Keep `/Ob0` for `cl.exe`.
+**One change is needed in PortableKit for clang-cl** (made: PortableKit now drops `/Ob0` under clang-cl in both places). CMake sets `MSVC` for clang-cl too, so `portablekit/cmake/PortableKit.cmake` gives the generated units `/O2 /Ob0 /bigobj` (the `if(MSVC)` near "generated AOT units", and again for overlay libraries further down). Under clang-cl, `/Ob0` turns off inlining of everything not marked always-inline. Use `/O2 /bigobj` without `/Ob0` when the compiler is clang-cl (`CMAKE_CXX_COMPILER_ID STREQUAL "Clang"`), and measure both if in doubt. Keep `/Ob0` for `cl.exe`.
 
 ## What to install
 
@@ -87,3 +87,11 @@ The `scripts/*.sh` scripts (generate, build, run, the Android ones) assume macOS
 ## Releasing for Windows
 
 There is no `scripts/release_windows.sh` yet. A release would be: the Release build above with `PSPRECOMP_NATIVE_AVX2` off, `SpartaNative.exe` with the DLLs next to it (SDL3, the FFmpeg ones), the launcher art in the layout `release_macos.sh` uses, `THIRD_PARTY_NOTICES.md`, and the FFmpeg source archive beside the release (LGPL), zipped. Model it on `scripts/release_macos.sh` and `portablekit/docs/RELEASING.md`, and add the zip to `scripts/publish_release.sh`.
+
+## First build (2026-10-14)
+
+- **Install clang-cl** without opening the GUI: `"C:\Program Files (x86)\Microsoft Visual Studio\Installer\setup.exe" modify --installPath "<Build Tools path>" --add Microsoft.VisualStudio.Component.VC.Llvm.Clang --add Microsoft.VisualStudio.Component.VC.Llvm.ClangToolset --passive --norestart` (asks for administrator rights).
+- **Configure failed at first** with the SDL3 3.4 VC package: its `SDL3ConfigVersion.cmake` test-compiles a `.c` file to detect the CPU, and the project enabled only C++. `CMakeLists.txt` now declares `LANGUAGES C CXX`.
+- **Generate** took 13 seconds (not 3 minutes): 22 159 functions, 254 units.
+- **The long build** took about 7 minutes with `-j 6` (16 GB); no unit crashed clang-cl, so the `0069` workaround stays Android-only. The generated units compile with `/O2 /Ob2 /bigobj`.
+- **First run**, the scripted stretch above at ×1 (960×544), frame skip off: `Renderer: Vulkan on AMD Radeon RX 7600`, no `[interpreter]` line, and in the boat fight **60 fps at 100% speed** throughout, `guest` 2.9–3.7 ms, `render` 3.4–4.6 ms, GPU about 1 ms a frame. The only long frames (33–36 ms) were pipeline compiles on a first run with an empty pipeline cache.

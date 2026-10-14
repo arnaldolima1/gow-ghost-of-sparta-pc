@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" SPARTA_VERSION LIMIT_COUNT 1)
-project(Sparta VERSION ${SPARTA_VERSION} LANGUAGES CXX)
+# C too: the SDL3 package for Visual Studio test-compiles a .c file to detect
+# the target CPU.
+project(Sparta VERSION ${SPARTA_VERSION} LANGUAGES C CXX)
 
 # PortableKit brings the recompiler, the runtime and the system layer, and
 # defines portablekit_add_game().
