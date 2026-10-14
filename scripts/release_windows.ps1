@@ -31,6 +31,8 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 function Fail([string]$message) { [Console]::Error.WriteLine("error: $message"); exit 1 }
+# Shows each line and appends it to the log in UTF-8 (Tee-Object writes UTF-16).
+function Write-Log([string]$path) { process { $_; Add-Content -Path $path -Value $_ -Encoding UTF8 } }
 
 $repo = Split-Path -Parent $PSScriptRoot
 Set-Location $repo
@@ -76,13 +78,14 @@ New-Item -ItemType Directory -Force $logsDir | Out-Null
 $log = Join-Path $logsDir 'build.log'
 Set-Content -Path (Join-Path $logsDir 'build.status') -Value running
 $started = Get-Date
-"started $($started.ToString('yyyy-MM-dd HH:mm:ss')) (release $version, Windows)" | Tee-Object -FilePath $log
+Set-Content -Path $log -Value "started $($started.ToString('yyyy-MM-dd HH:mm:ss')) (release $version, Windows)" -Encoding UTF8
+Get-Content $log
 $configure = "cmake -S . -B `"$buildDir`" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl " +
     "-DCMAKE_PREFIX_PATH=`"$Sdl3`" -DPORTABLEKIT_RELEASE=ON -DPSPRECOMP_NATIVE_AVX2=OFF"
 $build = "cmake --build `"$buildDir`" --target SpartaNative -j $Jobs"
-cmd /c "`"$vcvars`" >nul && $configure && $build 2>&1" | Tee-Object -FilePath $log -Append
+cmd /c "`"$vcvars`" >nul && $configure && $build 2>&1" | Write-Log $log
 $code = $LASTEXITCODE
-"finished $((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')) exit=$code ($([int]((Get-Date) - $started).TotalMinutes) min)" | Tee-Object -FilePath $log -Append
+"finished $((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')) exit=$code ($([int]((Get-Date) - $started).TotalMinutes) min)" | Write-Log $log
 Set-Content -Path (Join-Path $logsDir 'build.status') -Value $code
 if ($code -ne 0) { Fail "the build failed; see $log" }
 
@@ -144,7 +147,7 @@ $zipName = "sparta-$version-windows-x64.zip"
 # Windows' own tar writes the zip with forward slashes, which every unzip reads.
 tar.exe -a -c -f (Join-Path $releaseDir $zipName) -C $releaseDir Sparta
 if ($LASTEXITCODE -ne 0) { Fail 'cannot pack the zip' }
-$ffmpegBuild = Select-String -Path "$bin\FFmpeg-SOURCE.txt" -Pattern '/(ffmpeg-(n[^/]*?-g([0-9a-f]+))-win64[^/]*)\.zip' | Select-Object -First 1
+$ffmpegBuild = Select-String -Path "$bin\FFmpeg-SOURCE.txt" -Pattern '/((ffmpeg-n[^/]*?-g([0-9a-f]+))-win64[^/]*)\.zip' | Select-Object -First 1
 if (-not $ffmpegBuild) { Fail 'cannot read the FFmpeg build from FFmpeg-SOURCE.txt' }
 $ffmpegSource = "$($ffmpegBuild.Matches[0].Groups[2].Value)-source.tar.gz"
 $ffmpegCommit = $ffmpegBuild.Matches[0].Groups[3].Value
