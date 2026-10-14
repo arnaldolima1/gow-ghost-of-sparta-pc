@@ -42,11 +42,12 @@ mkdir -p "$analysis_dir" "$repo_dir/generated"
 # removes units that no longer exist, so unchanged units keep their timestamps
 # and are not recompiled. --sparse-entries makes dispatcher entries only where
 # control arrives from outside a block, so the compiler can optimize across
-# instructions (docs/PERFORMANCE.md); SPARTA_DENSE_ENTRIES=1 generates the old
-# way, an entry at every word.
-sparse=--sparse-entries
+# instructions, and --return-hints lets a return test its same-unit callers
+# before dispatching (docs/PERFORMANCE.md); SPARTA_DENSE_ENTRIES=1 generates
+# the old way, an entry at every word.
+sparse="--sparse-entries --return-hints"
 [[ "${SPARTA_DENSE_ENTRIES:-0}" == 1 ]] && sparse=
-"$build_dir/portablekit/psp_recomp" "$elf" --auto "$repo_dir/generated" $sparse
+"$build_dir/portablekit/psp_recomp" "$elf" --auto "$repo_dir/generated" ${sparse}
 
 echo
 echo "What the recompiler could not lower:"
