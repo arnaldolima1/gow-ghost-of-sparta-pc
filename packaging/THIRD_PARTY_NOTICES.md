@@ -1,6 +1,6 @@
 # Third-party notices
 
-Sparta is distributed under the MIT License (`Sparta-LICENSE.txt`), and so is PortableKit, the framework it is built on (`PortableKit-LICENSE.txt`). Its released builds also contain the third-party software listed here, each under its own license. The license texts are in the same directory as this file: `licenses/` in the tarball, `/app/share/licenses/io.sparta.Sparta/` (also `/app/lib/sparta/licenses/`) in the Flatpak, `Sparta.app/Contents/Resources/licenses/` on macOS, and `assets/licenses/` in the Android APK.
+Sparta is distributed under the MIT License (`Sparta-LICENSE.txt`), and so is PortableKit, the framework it is built on (`PortableKit-LICENSE.txt`). Its released builds also contain the third-party software listed here, each under its own license. The license texts are in the same directory as this file: `licenses/` in the tarball, `/app/share/licenses/io.sparta.Sparta/` (also `/app/lib/sparta/licenses/`) in the Flatpak, `Sparta.app/Contents/Resources/licenses/` on macOS, `licenses\` in the Windows zip, and `assets/licenses/` in the Android APK.
 
 Sparta does not include any game assets or original game files: no disc image, no copy of the game's executable or data, and no textures, models, audio or video from the game. You must provide the files from your own legally obtained copy of the game.
 
@@ -74,6 +74,25 @@ Vulkan on Apple's Metal. Copyright (c) 2015-2026 The Brenwill Workshop Ltd. Apac
 
 - Library: `libMoltenVK.dylib`, with its driver manifest in `Sparta.app/Contents/Resources/vulkan/icd.d/`
 - Release: <https://github.com/KhronosGroup/MoltenVK/releases/download/v1.4.2/MoltenVK-macos.tar> (SHA-256 `f95765a6229cb7b915990a2890ce12ebe36a730b021545d3d52ae69ce4c4024e`); source: <https://github.com/KhronosGroup/MoltenVK/tree/v1.4.2>
+
+## Windows
+
+The Windows zip ships these next to `Sparta.exe`, instead of the SDL3 and FFmpeg builds described above. Vulkan comes from the graphics driver.
+
+### SDL3 3.4.18
+
+Copyright (C) 1997-2026 Sam Lantinga. zlib License: `SDL3-LICENSE.txt`. The unmodified `SDL3.dll` of the official Visual Studio package, <https://github.com/libsdl-org/SDL/releases/download/release-3.4.18/SDL3-devel-3.4.18-VC.zip> (SHA-256 `78d84602ae616cfe26b33a73b7d3b9b6b56e8a6650e53d92c9c6ca938f747acd`).
+
+### FFmpeg 7.1.5 (BtbN build)
+
+`avcodec-61.dll`, `avutil-59.dll` and `swresample-5.dll`: an unmodified prebuilt LGPL shared build of FFmpeg from BtbN/FFmpeg-Builds, licensed under the GNU Lesser General Public License, version 3 or later: `FFmpeg-LICENSE.txt`, with the build noted in `FFmpeg-SOURCE.txt`. The libraries are dynamically linked; you may replace them with your own builds of a compatible version.
+
+- Build: <https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-06-30-13-34/ffmpeg-n7.1.5-1-g7d0e842004-win64-lgpl-shared-7.1.zip> (SHA-256 `03a8003e245c08df4277d7b0adc50b93a97ddd4a3aaafea21943c4384df59895`), pinned in PortableKit's `cmake/FFmpeg.cmake`
+- Source: FFmpeg commit `7d0e842004` on the `release/7.1` branch, published as `ffmpeg-n7.1.5-1-g7d0e842004-source.tar.gz` beside every Windows build; build scripts: <https://github.com/BtbN/FFmpeg-Builds>. The source offer above applies to it too.
+
+### Microsoft Visual C++ runtime
+
+`msvcp140.dll`, `vcruntime140.dll` and `vcruntime140_1.dll`, redistributed unmodified from Visual Studio 2022 under its license terms for redistributable code, so that Sparta runs without installing the Visual C++ Redistributable.
 
 ## Font
 
