@@ -12,7 +12,7 @@ The framework changes live in PortableKit (`portablekit/`, the fork's `sparta` b
 | --- | --- | --- | --- |
 | — | Draw batching in the GE (PortableKit `9a3d053`) | **Done, released in 0.1.4** | Boat fight at ×2, frame skip off: 90–91% → **~100%** speed |
 | — | Render thread (`render-thread` branch) | **Parked** — correct but no gain | 90% → 76–92% |
-| 1 | Recompiler: dispatcher entries only where needed | **Next, being started** | Estimated 1.5–2 ms a frame of game code |
+| 1 | Recompiler: dispatcher entries only where needed (PortableKit `dispatch-entries` branch) | **Written, tested on its own; waiting for a regenerate + build and a run** | Estimated 1.5–2 ms a frame of game code |
 | 2 | Fewer render target copies on the GPU | To do | Needed for ×3 on the phone |
 | 3 | Cache of static vertices on the GPU | To do | Estimated ~1 ms a frame, and memory bandwidth |
 | 4 | Recompiler: guest registers in locals | To do, large | The biggest possible gain in game code |
@@ -99,7 +99,7 @@ Worth another look only once per-draw costs and vertex volume are much smaller, 
 
 ## Next
 
-### 1. Dispatcher entries only where they are needed (being started)
+### 1. Dispatcher entries only where they are needed (written, not yet run in the game)
 
 **Idea.** Separate the two roles every word has now:
 - **Labels**, where a block starts: every target of a branch or jump inside the unit, and every instruction after a branch's delay slot. These stay `goto` targets, as now.
@@ -109,11 +109,22 @@ The analysis already computes most of this: `FunctionAnalysis::entry_labels` ("f
 
 **Safety net.** A dispatch to an address that is not an entry leaves the unit through the `switch`'s `default` with `ctx.pc` set; the outer dispatcher finds no function there and runs the **interpreter** from it (`Runtime::run_interpreter_fallback`), which keeps statistics. So a missed entry costs speed, not correctness. A finished port must also run with `PSPRECOMP_NO_INTERPRETER=1` wherever it can.
 
+**What is done** (PortableKit branch `dispatch-entries`, Sparta's `scripts/generate.sh`):
+- `psp_recomp --auto … --sparse-entries` (`generate_auto()` in `portablekit/tools/codegen_main.cpp`). Blocks: the analysis' block starts, the targets and fallthroughs of every branch and `j`, and the entries. Entries: every analysis seed (function entries, data and relocated code pointers), the word after every `jal`/`jalr`/`bltzal`-family branch, every `jal` target, branch and `j` targets in another unit, the first word of each unit (straight-line code runs on into it), and every word the analysis never reached (as before). Delay slots are neither.
+- A unit entered at an address that has no entry, with no local jump yet, calls the interpreter (new `CorpusHostApi::interpret`, ABI version 2) instead of stopping with "invalid internal function entry". The interpreter stops at the next registered address. A local `jr` to an address without an entry still leaves the unit, and the outer dispatcher comes back to it.
+- `scripts/generate.sh` passes `--sparse-entries`; `SPARTA_DENSE_ENTRIES=1 scripts/generate.sh` generates the old way.
+- Test `test_automatic_sparse_entries` in `portablekit/tests/test_main.cpp` (`psprecomp_tests` passes).
+
+**Measured so far, without running the game:** 1,040,000 words → 93,774 entries (9%) and about 200,000 blocks (20%). Units 0100 and 0200, compiled with `clang++ -O2` for arm64: 409 → 267 KB and 332 → 205 KB of code (−35 to −38%).
+
 **Steps.**
-1. In `generate_auto()`, build the entry set from the analysis (plus data-referenced code addresses and cross-unit jump targets) and the label set from the units' control flow; emit blocks per label and `switch` cases per entry. Keep the old behaviour behind a switch to the generator, to compare.
+1. ~~In `generate_auto()`, build the entry set from the analysis (plus data-referenced code addresses and cross-unit jump targets) and the label set from the units' control flow; emit blocks per label and `switch` cases per entry. Keep the old behaviour behind a switch to the generator, to compare.~~ Done, above.
 2. Regenerate (`scripts/generate.sh`, about 3 minutes) and rebuild (`scripts/build.sh`, about 15 minutes on an M4; the Android build is longer). These are long builds: the owner runs them.
 3. Check: the interpreter statistics in the log after a run through title, movie, boat and fight (how many entries, how many instructions interpreted; anything hot there is a missing entry); captures against the current build; then the phone numbers.
 4. Compare `clang -S` instructions per PSP instruction for a few hot units before and after.
+5. If it holds: merge `dispatch-entries` into the fork's `sparta` branch, bump the submodule, add it to PR #44 or a new PR (the option is off unless asked for, so other ports are unaffected).
+
+**Reading the interpreter statistics.** The first fallback prints `[interpreter] no recompiled function at …` to the log; `PSPRECOMP_INTERPRETER_VERBOSE=1` prints every new address. When the run loop ends (quitting the game), stderr gets `[interpreter] instructions=… entries=… unique_addresses=…` and the 20 addresses that ran the most (nothing if nothing was interpreted). A hot address there is a missing entry: find which kind of transfer reaches it (`PSPRECOMP_INTERPRETER_WATCH`) and add that kind to the entry rules in `generate_auto()`. With `PSPRECOMP_NO_INTERPRETER=1` a missing entry stops the game with "no entry here and no interpreter", naming the address.
 
 **Risks.** An entry the analysis misses that is hot (a jump table it cannot resolve) runs interpreted: slow, visible in the statistics. Code reached only through a computed jump into the middle of a function. Overlays, if a game loads code later (this one has none). Compile time and memory per unit may change.
 

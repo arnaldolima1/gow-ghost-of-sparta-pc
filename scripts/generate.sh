@@ -40,8 +40,13 @@ mkdir -p "$analysis_dir" "$repo_dir/generated"
 "$build_dir/portablekit/psp_analyze" "$elf" "$analysis_dir/report.json"
 # Regenerated in place: psp_recomp rewrites only units whose text changed and
 # removes units that no longer exist, so unchanged units keep their timestamps
-# and are not recompiled.
-"$build_dir/portablekit/psp_recomp" "$elf" --auto "$repo_dir/generated"
+# and are not recompiled. --sparse-entries makes dispatcher entries only where
+# control arrives from outside a block, so the compiler can optimize across
+# instructions (docs/PERFORMANCE.md); SPARTA_DENSE_ENTRIES=1 generates the old
+# way, an entry at every word.
+sparse=--sparse-entries
+[[ "${SPARTA_DENSE_ENTRIES:-0}" == 1 ]] && sparse=
+"$build_dir/portablekit/psp_recomp" "$elf" --auto "$repo_dir/generated" $sparse
 
 echo
 echo "What the recompiler could not lower:"
