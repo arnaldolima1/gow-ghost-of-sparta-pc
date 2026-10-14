@@ -12,7 +12,7 @@ The framework changes live in PortableKit (`portablekit/`, the fork's `sparta` b
 | --- | --- | --- | --- |
 | — | Draw batching in the GE (PortableKit `9a3d053`) | **Done, released in 0.1.4** | Boat fight at ×2, frame skip off: 90–91% → **~100%** speed |
 | — | Render thread (`render-thread` branch) | **Parked** — correct but no gain | 90% → 76–92% |
-| 1 | Recompiler: dispatcher entries only where needed (PortableKit `dispatch-entries` branch) | **Written, tested on its own; waiting for a regenerate + build and a run** | Estimated 1.5–2 ms a frame of game code |
+| 1 | Recompiler: dispatcher entries only where needed (PortableKit `dispatch-entries` branch) | **Runs on the Mac (title → movie → boat fight, nothing interpreted); phone not measured yet** | Estimated 1.5–2 ms a frame of game code |
 | 2 | Fewer render target copies on the GPU | To do | Needed for ×3 on the phone |
 | 3 | Cache of static vertices on the GPU | To do | Estimated ~1 ms a frame, and memory bandwidth |
 | 4 | Recompiler: guest registers in locals | To do, large | The biggest possible gain in game code |
@@ -116,6 +116,8 @@ The analysis already computes most of this: `FunctionAnalysis::entry_labels` ("f
 - Test `test_automatic_sparse_entries` in `portablekit/tests/test_main.cpp` (`psprecomp_tests` passes).
 
 **Measured so far, without running the game:** 1,040,000 words → 93,774 entries (9%) and about 200,000 blocks (20%). Units 0100 and 0200, compiled with `clang++ -O2` for arm64: 409 → 267 KB and 332 → 205 KB of code (−35 to −38%).
+
+**First run, Mac (M4, dev build, frame skip off):** title, movie and the boat fight look as before, and the log has no `[interpreter]` line: nothing ran without an entry. Guest time in the fight 1.4–2.9 ms a frame; there is no Mac baseline from the old corpus to compare with, so the number that matters is the phone's.
 
 **Steps.**
 1. ~~In `generate_auto()`, build the entry set from the analysis (plus data-referenced code addresses and cross-unit jump targets) and the label set from the units' control flow; emit blocks per label and `switch` cases per entry. Keep the old behaviour behind a switch to the generator, to compare.~~ Done, above.
