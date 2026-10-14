@@ -36,7 +36,7 @@ Sparta is a native port made by **static recompilation**: the game's PSP code is
 | --- | --- |
 | **macOS** | macOS 26, Apple Silicon (M4), Vulkan through MoltenVK: 60 fps and full speed throughout, up to ×5 internal resolution |
 | **Android** | Moto g84 5G (Snapdragon 695, Adreno 619, Android 15): full speed at ×2, 60 fps, in the boat's heaviest fights ([details](#android)) |
-| **Not tried yet** | Windows, Linux — PortableKit builds there; this port has never been run there |
+| **Not tried yet** | Windows, Linux — PortableKit builds there; this port has never been run there ([building on Windows](docs/WINDOWS.md)) |
 | **Release** | `UCES-01401`, European, v1.00 — the installer checks the disc id and the SHA-256 of the executable |
 | **Imports the game makes** | 206, of which 2 have no implementation (`sceKernelLoadExec`, `sceAtracSetAA3DataAndGetID`); neither has been seen called |
 | **Recompiled** | 22 159 functions · 1 036 824 blocks · 254 C++ units |
@@ -151,7 +151,8 @@ The framework changes live on the `sparta` branch of [a fork of PortableKit](htt
 ├── packaging/                # icon, release description, .dmg read-me, third-party notices
 ├── docs/
 │   ├── MISSING.md            # what is known to be missing
-│   └── PERFORMANCE.md        # where the frame time goes, done and next
+│   ├── PERFORMANCE.md        # where the frame time goes, done and next
+│   └── WINDOWS.md            # how to build on Windows (not done yet)
 ├── portablekit/              # submodule: the recompiler and runtime (fork, branch sparta)
 │
 │   # created locally, never committed:

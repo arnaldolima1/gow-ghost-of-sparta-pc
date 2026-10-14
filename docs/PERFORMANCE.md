@@ -12,11 +12,21 @@ The framework changes live in PortableKit (`portablekit/`, the fork's `sparta` b
 | --- | --- | --- | --- |
 | — | Draw batching in the GE (PortableKit `9a3d053`) | **Done, released in 0.1.4** | Boat fight at ×2, frame skip off: 90–91% → **~100%** speed |
 | — | Render thread (`render-thread` branch) | **Parked** — correct but no gain | 90% → 76–92% |
-| 1 | Recompiler: dispatcher entries only where needed (PortableKit `dispatch-entries` branch) | **Done on its branch, measured: −6.5% cycles in game code** | Estimated 1.5–2 ms a frame of game code |
+| 1 | Recompiler: dispatcher entries only where needed (`--sparse-entries`) | **Done, released in 0.1.5** | Cycles in game code −6.5% |
+| 1b | Recompiler: return hints (`--return-hints`), memory view in a local | **Done, released in 0.1.5** | A further −3.2%: −9.6% in all against 0.1.4 |
 | 2 | Fewer render target copies on the GPU | To do | Needed for ×3 on the phone |
 | 3 | Cache of static vertices on the GPU | To do | Estimated ~1 ms a frame, and memory bandwidth |
-| 4 | Recompiler: guest registers in locals | To do, large | The biggest possible gain in game code |
+| 4 | Recompiler: guest registers in locals | **Next** — large | The biggest possible gain in game code |
 | 5 | Small per-draw costs in the renderer | To do | A few tenths of a millisecond each |
+
+## Start here (state on 2026-10-14)
+
+- **Released: 0.1.5** (macOS and Android), with draw batching (0.1.4) and items 1 and 1b. Sparta `main` and the PortableKit fork's `sparta` branch have everything; PR #44 to TeamGDB carries the PortableKit side (its description predates items 1 and 1b).
+- **On the phone at ×2, frame skip off,** the boat fight holds 99–100% speed; the game thread is about half recompiled game code (~8 ms) and half display lists (~6–7 ms). At ×3 the GPU is the limit.
+- **Next: item 4, guest registers in locals.** Items 1 and 1b gave less than the smaller code promised (35% less code, 10% fewer cycles) for one reason: every PSP instruction still loads its operands from `AllegrexContext` and stores its result back. The last two profiles point at that, and nothing else in game code comes close. It is the hardest item: an earlier register cache was removed from PortableKit because MSVC's optimizer never finished on the large units it produced and each compile grew past 2 GB (see the comment in `generate_auto()`). The plan in [item 4](#4-guest-registers-in-locals) starts small, with an experiment of an hour, and checks compile time and memory on the heaviest units before any long build.
+- **The alternative** is item 2 (fewer GPU target copies), which is what ×3 on the phone needs; it does nothing for ×2.
+- **Building on Windows:** [WINDOWS.md](WINDOWS.md). No Windows build of this port has been made yet; that page says how to make one that runs well, and what to check.
+- The owner runs the long builds (regenerating and compiling the corpus, release builds) unless they say otherwise; short tool builds and test runs are fine to run.
 
 ## How to measure
 
@@ -67,7 +77,7 @@ So at ×2 the game now holds full speed with 1–5 ms to spare; at ×3 the GPU i
 
 ### The recompiled code
 
-`psp_recomp` (`portablekit/tools/codegen_main.cpp`) cuts the executable into 16 KiB units, each one C++ function. **Every instruction word is a dispatcher entry**: the unit's `switch` has a case for each of its 4096 words, and the code is emitted as one block per entry, so every instruction is its own basic block ending in a `goto` to the next. The comment in `generate_auto()` gives the reason: static analysis cannot resolve every computed jump, and an address with no code would stop the runtime.
+*As it was up to 0.1.4; items 1 and 1b changed it.* `psp_recomp` (`portablekit/tools/codegen_main.cpp`) cuts the executable into 16 KiB units, each one C++ function. **Every instruction word is a dispatcher entry**: the unit's `switch` has a case for each of its 4096 words, and the code is emitted as one block per entry, so every instruction is its own basic block ending in a `goto` to the next. The comment in `generate_auto()` gives the reason: static analysis cannot resolve every computed jump, and an address with no code would stop the runtime.
 
 The effect, read off `clang -S` of a hot unit (`generated_unit_0003.cpp`) for arm64 at `-O2`:
 
@@ -99,7 +109,7 @@ Worth another look only once per-draw costs and vertex volume are much smaller, 
 
 ## Next
 
-### 1. Dispatcher entries only where they are needed (written, not yet run in the game)
+### 1. Dispatcher entries only where they are needed (done, 0.1.5)
 
 **Idea.** Separate the two roles every word has now:
 - **Labels**, where a block starts: every target of a branch or jump inside the unit, and every instruction after a branch's delay slot. These stay `goto` targets, as now.
@@ -146,9 +156,16 @@ The perf line shows about 34–37 render target copies a frame (`copies`), most 
 
 Keep the converted vertices of draws whose source bytes are unchanged (hash of the raw vertex bytes with the vertex type and count) in a persistent GPU buffer, and draw from there instead of decoding, converting and uploading them again. Skinned draws change every frame and stay as they are. PPSSPP has such a cache. Saves decode (~2.9 G cycles in 15 s), part of the conversion and memory bandwidth, which is what this phone is short of.
 
-### 4. Guest registers in locals
+### 4. Guest registers in locals (next)
 
-The big one for game code: emit each unit with the 32 GPRs (and the FPU registers) in local variables, stored back to `AllegrexContext` before anything that leaves the unit's code (imports, other units, the interpreter, returns) and reloaded after. With item 1 done the compiler can keep them in host registers across blocks. A rewrite of much of the code generator.
+**Why.** Generated code reads and writes guest registers as `ctx.gpr[n]`, `ctx.fpr[n]` and the VFPU registers in `AllegrexContext`. Guest memory stores go through a byte pointer (`AotFastView`), and a byte pointer may alias anything, so after every guest store the compiler must assume any `ctx` field changed and reload it. That is the same aliasing that made every access reload the memory view (fixed in 1b by copying the view into a local). Values in locals whose address never escapes cannot be aliased, so the compiler can keep them in host registers.
+
+**Plan, smallest step first:**
+1. **Experiment (an hour, no long build).** Take two hot units (0172 and 0180 are the hottest on the phone; 0009, 0010 next) and compare `clang++ -O2` arm64 output (instructions and loads per PSP instruction, see [the recompiled code](#the-recompiled-code)) for: (a) as generated; (b) the RAM pointer as a `std::uint8_t *__restrict` local, which tells the compiler guest stores do not touch `ctx`; (c) by hand, one hot function's registers in locals. If (b) gets most of (c), item 4 is small: `__restrict` was tried before item 1 and did nothing, but then every instruction was a dispatcher entry, which hid any effect.
+2. **Per-block locals.** Within each block (from one label to the next goto or exit), load each guest register used into a local on first use, keep it there, and store the ones written back before the block ends and before anything that can observe `ctx`: imports, `rt.` calls, chained calls, the interpreter, `unsupported`, every `return`. The compiler then keeps them in registers across the block without any analysis of its own. Nothing crosses a label, so correctness does not depend on the dispatcher.
+3. **Across blocks**, only if 2 pays: liveness per function, so values stay in registers along gotos. This is where the old cache ran MSVC out of memory.
+
+**Check at each step:** compile time and peak memory of the heaviest units with the NDK clang, Apple clang and (on Windows) clang-cl, before any long build; `psprecomp_tests`; captures on the Mac; the phone bench in absolute cycles. Keep it behind a generator option, like `--sparse-entries`, until it has run on every platform.
 
 ### 5. Small per-draw costs
 
