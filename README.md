@@ -42,7 +42,7 @@ Sparta is a native port made by **static recompilation**: the game's PSP code is
 | **Recompiled** | 22 159 functions · 1 036 824 blocks · 254 C++ units |
 | **Not lowered by the recompiler** | only the game's own 44 `break` traps |
 
-What is known to be missing is in [`docs/MISSING.md`](docs/MISSING.md).
+What is known to be missing is in [`docs/MISSING.md`](docs/MISSING.md); where the frame time goes, and what is being done about it, in [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md).
 
 ## What's new
 
@@ -138,13 +138,16 @@ The framework changes live on the `sparta` branch of [a fork of PortableKit](htt
 │   ├── build_android.sh      # build an APK, in build/android/
 │   ├── run_android.sh        # install it on a connected phone and start it
 │   ├── release_android.sh    # the release's APK, in release/android/
+│   ├── bench_android.sh      # measure a stretch of play on a phone (docs/PERFORMANCE.md)
 │   ├── publish_release.sh    # put the release on GitHub
 │   └── common.sh             # the paths the scripts share
 ├── tools/
-│   └── decrypt_eboot.cpp     # development helper: decrypt EBOOT.BIN, print its hash
+│   ├── decrypt_eboot.cpp     # development helper: decrypt EBOOT.BIN, print its hash
+│   └── perf/                 # reports on a phone's simpleperf profiles
 ├── packaging/                # icon, release description, .dmg read-me, third-party notices
 ├── docs/
-│   └── MISSING.md            # what is known to be missing
+│   ├── MISSING.md            # what is known to be missing
+│   └── PERFORMANCE.md        # where the frame time goes, done and next
 ├── portablekit/              # submodule: the recompiler and runtime (fork, branch sparta)
 │
 │   # created locally, never committed:
