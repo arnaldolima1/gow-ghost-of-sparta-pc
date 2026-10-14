@@ -46,6 +46,10 @@ What is known to be missing is in [`docs/MISSING.md`](docs/MISSING.md); where th
 
 ## What's new
 
+Since 0.1.4:
+
+- **Lighter game code.** The recompiler made every PSP instruction a place the game could jump into, which kept the C++ compiler from optimizing across instructions; it now makes entry points only where control can arrive from outside a block. Returns from functions jump straight back to their caller when it is in the same part of the code, and memory accesses no longer reload where the PSP's memory is after every store. On a Moto g84 the game's own code takes about 10% fewer CPU cycles. See [docs/PERFORMANCE.md](docs/PERFORMANCE.md).
+
 Since 0.1.3:
 
 - **Much faster on phones.** The game draws its scenes as some 6500 tiny pieces a frame; the renderer now takes the pieces drawn in a row with the same state as one, as PPSSPP does, instead of doing its whole work for each. On a Moto g84 the boat's heaviest fights now run at full speed at ×2 without skipping frames (they ran at about 90%).
