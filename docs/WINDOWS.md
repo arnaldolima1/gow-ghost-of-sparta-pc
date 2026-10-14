@@ -86,7 +86,14 @@ The `scripts/*.sh` scripts (generate, build, run, the Android ones) assume macOS
 
 ## Releasing for Windows
 
-There is no `scripts/release_windows.sh` yet. A release would be: the Release build above with `PSPRECOMP_NATIVE_AVX2` off, `SpartaNative.exe` with the DLLs next to it (SDL3, the FFmpeg ones), the launcher art in the layout `release_macos.sh` uses, `THIRD_PARTY_NOTICES.md`, and the FFmpeg source archive beside the release (LGPL), zipped. Model it on `scripts/release_macos.sh` and `portablekit/docs/RELEASING.md`, and add the zip to `scripts/publish_release.sh`.
+From PowerShell in the checkout, with the recompiled code in `generated\` and everything committed:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\release_windows.ps1           # build and pack, in release\windows\
+powershell -ExecutionPolicy Bypass -File scripts\publish_release_windows.ps1   # tag it and put it on GitHub
+```
+
+`release_windows.ps1` builds a Release with clang-cl and without AVX2 in `build\release-windows\` (every generated unit again; with ccache a second release is quick), then packs `Sparta.exe` with SDL3, the FFmpeg DLLs, the Visual C++ runtime, the launcher art, `licenses\` and `packaging\windows\README.txt` into `sparta-<version>-windows-x64.zip`. It starts the packed program for a few seconds when the game is installed on the machine, and downloads the source of the exact FFmpeg build it ships, which the release offers beside the zip (LGPL). Versions work as in `release_macos.sh`.
 
 ## First build (2026-10-14)
 
