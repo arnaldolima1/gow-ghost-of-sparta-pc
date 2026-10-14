@@ -16,16 +16,17 @@ The framework changes live in PortableKit (`portablekit/`, the fork's `sparta` b
 | 1b | Recompiler: return hints (`--return-hints`), memory view in a local | **Done, released in 0.1.5** | A further −3.2%: −9.6% in all against 0.1.4 |
 | 2 | Fewer render target copies on the GPU | To do | Needed for ×3 on the phone |
 | 3 | Cache of static vertices on the GPU | To do | Estimated ~1 ms a frame, and memory bandwidth |
-| 4 | Recompiler: guest registers in locals | **Next** — large | The biggest possible gain in game code |
+| 4 | Recompiler: guest registers in locals | **Experiment done: does not pay as planned** (see [item 4](#4-guest-registers-in-locals-experiment-done)) | Static: more instructions and spills, not fewer |
+| 4b | Guest memory accesses without a call in them | To decide — what item 4 needs first | Not measured |
 | 5 | Small per-draw costs in the renderer | To do | A few tenths of a millisecond each |
 
-## Start here (state on 2026-10-14)
+## Start here (state on 2026-10-14, evening)
 
 - **Released: 0.1.5** (macOS and Android), with draw batching (0.1.4) and items 1 and 1b. Sparta `main` and the PortableKit fork's `sparta` branch have everything; PR #44 to TeamGDB carries the PortableKit side (its description predates items 1 and 1b).
 - **On the phone at ×2, frame skip off,** the boat fight holds 99–100% speed; the game thread is about half recompiled game code (~8 ms) and half display lists (~6–7 ms). At ×3 the GPU is the limit.
-- **Next: item 4, guest registers in locals.** Items 1 and 1b gave less than the smaller code promised (35% less code, 10% fewer cycles) for one reason: every PSP instruction still loads its operands from `AllegrexContext` and stores its result back. The last two profiles point at that, and nothing else in game code comes close. It is the hardest item: an earlier register cache was removed from PortableKit because MSVC's optimizer never finished on the large units it produced and each compile grew past 2 GB (see the comment in `generate_auto()`). The plan in [item 4](#4-guest-registers-in-locals) starts small, with an experiment of an hour, and checks compile time and memory on the heaviest units before any long build.
-- **The alternative** is item 2 (fewer GPU target copies), which is what ×3 on the phone needs; it does nothing for ×2.
-- **Building on Windows:** [WINDOWS.md](WINDOWS.md). No Windows build of this port has been made yet; that page says how to make one that runs well, and what to check.
+- **Item 4's first experiment is done, and item 4 as planned does not pay** (details in [item 4](#4-guest-registers-in-locals-experiment-done)): with guest registers in locals the compiler spills them to the stack instead of reloading them from `AllegrexContext`, because every guest load and store has a call on its slow path. `AllegrexContext` is, in effect, already the spill area. What would let item 4 pay is item 4b: guest memory accesses with no call in them.
+- **Next, to choose:** item 4b (large, framework-wide; measure on the phone before anything else) or item 2 (fewer GPU target copies), which is what ×3 on the phone needs and does nothing for ×2.
+- **Windows:** built with clang-cl and released in 0.1.6 ([WINDOWS.md](WINDOWS.md)). On a Radeon RX 7600 the boat fight runs at 60 fps with `guest` about 3 ms a frame, so game code is no limit there. Open: the AMD Vulkan driver (`amdvlk64.dll`) sometimes crashes as the program exits, after the game has stopped.
 - The owner runs the long builds (regenerating and compiling the corpus, release builds) unless they say otherwise; short tool builds and test runs are fine to run.
 
 ## How to measure
@@ -156,7 +157,7 @@ The perf line shows about 34–37 render target copies a frame (`copies`), most 
 
 Keep the converted vertices of draws whose source bytes are unchanged (hash of the raw vertex bytes with the vertex type and count) in a persistent GPU buffer, and draw from there instead of decoding, converting and uploading them again. Skinned draws change every frame and stay as they are. PPSSPP has such a cache. Saves decode (~2.9 G cycles in 15 s), part of the conversion and memory bandwidth, which is what this phone is short of.
 
-### 4. Guest registers in locals (next)
+### 4. Guest registers in locals (experiment done)
 
 **Why.** Generated code reads and writes guest registers as `ctx.gpr[n]`, `ctx.fpr[n]` and the VFPU registers in `AllegrexContext`. Guest memory stores go through a byte pointer (`AotFastView`), and a byte pointer may alias anything, so after every guest store the compiler must assume any `ctx` field changed and reload it. That is the same aliasing that made every access reload the memory view (fixed in 1b by copying the view into a local). Values in locals whose address never escapes cannot be aliased, so the compiler can keep them in host registers.
 
@@ -166,6 +167,21 @@ Keep the converted vertices of draws whose source bytes are unchanged (hash of t
 3. **Across blocks**, only if 2 pays: liveness per function, so values stay in registers along gotos. This is where the old cache ran MSVC out of memory.
 
 **Check at each step:** compile time and peak memory of the heaviest units with the NDK clang, Apple clang and (on Windows) clang-cl, before any long build; `psprecomp_tests`; captures on the Mac; the phone bench in absolute cycles. Keep it behind a generator option, like `--sparse-entries`, until it has run on every platform.
+
+**The experiment (2026-10-14, on Windows).** `tools/perf/register_locals.py` rewrites a generated unit two ways: `unit`, all 32 GPRs as locals of the whole function, stored back around every `rt.` call and `return`; `blocks`, step 2 above, per-block locals. A third variant, `cold`, leaves the generated code alone and moves the slow paths of `AotFastView` (`slow_->load32(...)` and the like) out of line into `[[gnu::noinline, gnu::cold, clang::preserve_most]]` helpers, so a call on the slow path no longer clobbers the caller's registers. Variant (b) of the plan, a `__restrict` RAM pointer, was not built: it cannot help while the slow path is a call, which may touch `ctx` whatever the pointer's aliasing says. Units 0172 and 0180, compiled with clang-cl 19 at `/O2` for x86-64 and, with `--target=aarch64-pc-windows-msvc`, for arm64; counts of the `_entry` function, change against the unit as generated:
+
+| Variant | x86-64 0172 | x86-64 0180 | arm64 0172 | arm64 0180 |
+| --- | --- | --- | --- | --- |
+| As generated: instructions · stack loads/stores | 40 771 · 10 209 | 45 374 · 9 593 | 41 514 · 5 207 | 45 424 · 4 246 |
+| `unit` | **+35%** · +84% | **+58%** · +163% | **+62%** · +225% | **+85%** · +394% |
+| `blocks` | −3% · −3% | +0.3% · +36% | +5% · +63% | +6% · +93% |
+| `cold` | −5% · −25% | −2% · +3% | −6% · −9% | +2% · +10% |
+
+Other loads (from `ctx` and guest memory) fall with `blocks` (arm64: −22% and −14%) and `cold` (−16%, −7%), but the stack takes them back. Compile time and memory: `blocks` and `cold` as generated (3–5 s, about 210 MB a unit with clang-cl); `unit` 4–5 times the time.
+
+**Why.** A unit has about 2000 calls, nearly all of them the slow paths of guest loads and stores, inlined at every access. A value that must survive a call needs a callee-saved register or a stack slot; with 32 guest registers live, there are not enough of the first (8 on Win64 x86-64, 10 on arm64), so locals end up on the stack, which is no cheaper than `ctx`. As generated, the compiler simply reloads from `ctx` after a call, and `ctx` acts as the spill area. On x86-64 the same pressure shows in the code as generated: the view's fields (`ram_data_`, `owner_`, `slow_`, the write-watch flag) are spilled and reloaded about 1400 times each in unit 0172, which is what `cold` recovers part of.
+
+**What it means.** Item 4 needs guest memory accesses with no call in them first (item 4b): for example the PSP's address space reserved as one block of host memory, with what the fast path does not cover (EDRAM, unmapped addresses, write-watched pages) caught by page protection and a fault handler instead of a compare and a call, as PPSSPP and Dolphin do. That is a framework-wide change with its own risks (fault handling on every platform, Android included). The static counts here cannot say what it would gain at run time; measure the phone first (`scripts/bench_android.sh`, cycles in recompiled code), since Windows has time to spare. `cold` alone is a small, safe change worth a run-time measurement on the phone; on Windows its effect would be lost in the run-to-run spread (`guest` 2.91 and 3.12 ms in two runs of the same build).
 
 ### 5. Small per-draw costs
 
