@@ -8,13 +8,13 @@ What this port does not have yet, most likely to matter first. Measured on macOS
 2. The logos, the title menu and the opening cutscene play at 60 frames a second and full speed, with no audio underruns (`SPARTA_PERF=log`, `SPARTA_TRACE_STALLS=1`, `SPARTA_TRACE_AUDIO=1`).
 3. A new game starts, and the first level (the boat) was played by hand for a few minutes.
 
-**Not verified:** anything past the start of the first level; saving and loading a game; movies other than the opening; Windows, Linux and Android.
+**Not verified:** anything past the start of the first level; saving and loading a game; movies other than the opening; Windows and Linux.
 
 ## Known gaps
 
-### The GE stencil test
+### Dark bands at the foot of some walls
 
-The game enables the stencil test (GE commands `0x24`, `0xDC`, `0xDD`) in many scene passes and in the bloom composite, which PortableKit's renderer does not implement. Nothing visibly wrong has been traced to it yet; it is the first suspect for any masking error.
+On the boat, the vertical faces at the foot of raised platforms come out pitch black. Without lighting (`SPARTA_NO_LIGHTING=1`) they are dark grey, so it is the lighting the GE's model gives them; whether the PSP shows them as dark has not been compared.
 
 ### Imports with no implementation
 
@@ -30,4 +30,4 @@ The game probes `ms0:/PSP/GAME/UCUS98737/dlcarena.EDAT` and `dlccostume.EDAT` an
 
 ## Platforms
 
-Only macOS on Apple Silicon has been run. PortableKit builds on Windows and Linux and has an Android packaging path (see Purun's `scripts/build_android.sh`); this port has been built and run on none of them.
+macOS on Apple Silicon and Android (a Moto g84, Adreno 619) have been run. On that phone the boat holds full speed at ×2 internal resolution most of the time and dips to about 90% in its heaviest fights, where the game's code and the renderer share one thread; *Limit to 30 fps* holds 100% there. At ×3 the GPU cannot keep up. PortableKit builds on Windows and Linux; this port has not been run there.

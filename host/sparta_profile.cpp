@@ -43,6 +43,11 @@ constexpr LauncherTheme kLauncher{
     .credits = "An unofficial port, played from your own copy of the game.",
 };
 
+// The North American release has the same textures: a pack made for it on
+// PPSSPP keys the European release's textures alike (checked against one).
+// The game itself still names it, in the paths of its downloadable content.
+constexpr const char *kTexturePackReleases[] = {"UCUS98737"};
+
 } // namespace
 
 const GameProfile &game() {
@@ -87,10 +92,20 @@ const GameProfile &game() {
         // At most one flip a vblank: the game's own frame is one vblank.
         .frame_vblanks = 1,
         .flips_wait_for_vblank = true,
+        // Nothing in the game reads its own picture back with the CPU (the
+        // pause and power-up screens draw over the last frame on the GE), so
+        // the shown frame is not copied back into VRAM every flip.
+        .frame_writeback = false,
+        // Its movies cannot be skipped on a PSP; START skips them here.
+        .start_skips_movies = true,
 
         // A European console: English, confirm on cross.
         .system_language = 1u,
         .confirm_button = 1u,
+
+        .texture_pack_releases = kTexturePackReleases,
+        // The game is mixed loud; a new player starts at 30%.
+        .default_volume = 30u,
 
         .launcher = &kLauncher,
     };

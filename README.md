@@ -34,7 +34,8 @@ Sparta is a native port made by **static recompilation**: the game's PSP code is
 | | |
 | --- | --- |
 | **Tested on** | macOS 26, Apple Silicon (M4), Vulkan through MoltenVK |
-| **Not tried yet** | Windows, Linux, Android — PortableKit builds there; this port has never been run there |
+| **Also run on** | Android, Moto g84 (Adreno 619): full speed at ×2 most of the time, or with *Limit to 30 fps* |
+| **Not tried yet** | Windows, Linux — PortableKit builds there; this port has never been run there |
 | **Release** | `UCES-01401`, European, v1.00 — the installer checks the disc id and the SHA-256 of the executable |
 | **Imports the game makes** | 206, of which 2 have no implementation (`sceKernelLoadExec`, `sceAtracSetAA3DataAndGetID`); neither has been seen called |
 | **Recompiled** | 22 159 functions · 1 036 824 blocks · 254 C++ units |
@@ -166,6 +167,8 @@ The version comes from `VERSION`. When that version is already published, `relea
 | START / SELECT | <kbd>Enter</kbd> / <kbd>Backspace</kbd> |
 
 A PlayStation or Xbox gamepad works too. <kbd>Esc</kbd> (or L3+R3) opens the menu: controls, video, audio, saves.
+
+Extras: <kbd>Enter</kbd> (START) skips a movie. HD texture packs in PPSSPP's format install from Video → *Import texture pack…*; packs made for the North American release (`UCUS98737`) fit this one. Video → *Limit to 30 fps* draws every other frame at full game speed, for slower devices. The volume starts at 30%.
 
 Before the game starts, a launcher has the same settings, quick settings and a Play button; it backs your saves up each time you play. The interface is in English or Brazilian Portuguese (System → Language). `--play` skips the launcher once, `--launcher` brings it back if you turned it off.
 
