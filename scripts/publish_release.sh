@@ -50,6 +50,8 @@ if [[ -f "$apk" ]]; then
 ### Android
 
 \`sparta-$version-android-arm64.apk\` needs a 64-bit phone or tablet with Android 10 or newer and Vulkan. Allow installing apps from your browser or file manager, open the APK, then pick your disc image in the setup (the image is copied into the app; it needs about 2 GB free). Touch controls appear when you touch the screen; a gamepad works too. Later versions install over this one and keep your saves.
+
+**Coming from 0.1.2 or older:** the app's id changed (to \`io.sparta\`), so this version installs beside the old one instead of over it, and starts with no data. To keep your saves, open the old app's menu, **System › Export save…**, then **System › Import save…** in the new one; then uninstall the old one.
 NOTES
 fi
 git push origin main "v$version"

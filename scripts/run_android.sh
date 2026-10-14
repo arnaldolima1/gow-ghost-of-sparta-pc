@@ -18,7 +18,7 @@ export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
 adb="$ANDROID_HOME/platform-tools/adb"
 emulator="$ANDROID_HOME/emulator/emulator"
 apk="$build_root/android/dist/Sparta-android-arm64.apk"
-app=io.github.arnaldolima1.sparta
+app=io.sparta
 [[ -f "$apk" ]] || fail "no $apk; run scripts/build_android.sh first"
 
 if [[ -z "$("$adb" devices | awk 'NR > 1 && $2 == "device"')" ]]; then

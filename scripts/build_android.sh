@@ -89,7 +89,7 @@ echo running > "$logs_dir/build.status"
     [[ -n "$(ls "$work/assets/launcher")" ]] || echo "note: no launcher art in $launcher_art; the app shows the disc image's"
 
     apk="$work/dist/Sparta-android-arm64.apk"
-    APP_ID=io.github.arnaldolima1.sparta GAME_REPO="$repo_dir" \
+    APP_ID=io.sparta GAME_REPO="$repo_dir" \
     GAME_RES="$repo_dir/packaging/android/res" NOTICES="$repo_dir/packaging/THIRD_PARTY_NOTICES.md" \
     FONT_DIR="$sources" EXTRA_ASSETS="$work/assets" \
         bash "$repo_dir/portablekit/packaging/android/build_apk.sh" "$work/native" "$sdl_source" \

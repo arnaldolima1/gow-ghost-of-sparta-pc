@@ -1,6 +1,6 @@
 # Third-party notices
 
-Sparta is distributed under the MIT License (`Sparta-LICENSE.txt`), and so is PortableKit, the framework it is built on (`PortableKit-LICENSE.txt`). Its released builds also contain the third-party software listed here, each under its own license. The license texts are in the same directory as this file: `licenses/` in the tarball, `/app/share/licenses/io.github.arnaldolima1.Sparta/` (also `/app/lib/sparta/licenses/`) in the Flatpak, `Sparta.app/Contents/Resources/licenses/` on macOS, and `assets/licenses/` in the Android APK.
+Sparta is distributed under the MIT License (`Sparta-LICENSE.txt`), and so is PortableKit, the framework it is built on (`PortableKit-LICENSE.txt`). Its released builds also contain the third-party software listed here, each under its own license. The license texts are in the same directory as this file: `licenses/` in the tarball, `/app/share/licenses/io.sparta.Sparta/` (also `/app/lib/sparta/licenses/`) in the Flatpak, `Sparta.app/Contents/Resources/licenses/` on macOS, and `assets/licenses/` in the Android APK.
 
 Sparta does not include any game assets or original game files: no disc image, no copy of the game's executable or data, and no textures, models, audio or video from the game. You must provide the files from your own legally obtained copy of the game.
 
