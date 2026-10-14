@@ -119,6 +119,8 @@ The analysis already computes most of this: `FunctionAnalysis::entry_labels` ("f
 
 **First run, Mac (M4, dev build, frame skip off):** title, movie and the boat fight look as before, and the log has no `[interpreter]` line: nothing ran without an entry. Guest time in the fight 1.4–2.9 ms a frame; there is no Mac baseline from the old corpus to compare with, so the number that matters is the phone's.
 
+**Android compiler crash.** The NDK r27 clang 18 crashes (segfault in the greedy register allocator) on `generated_unit_0069.cpp` of the sparse corpus; Apple clang and every other unit are fine. `CMakeLists.txt` compiles that one unit with `-mllvm -regalloc=basic` on Android. To check all units after a regeneration, compile each with the NDK clang (3 minutes with 10 jobs); a newer NDK may not need it.
+
 **Steps.**
 1. ~~In `generate_auto()`, build the entry set from the analysis (plus data-referenced code addresses and cross-unit jump targets) and the label set from the units' control flow; emit blocks per label and `switch` cases per entry. Keep the old behaviour behind a switch to the generator, to compare.~~ Done, above.
 2. Regenerate (`scripts/generate.sh`, about 3 minutes) and rebuild (`scripts/build.sh`, about 15 minutes on an M4; the Android build is longer). These are long builds: the owner runs them.
