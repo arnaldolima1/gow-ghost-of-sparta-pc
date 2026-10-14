@@ -96,7 +96,7 @@ const GameProfile &game() {
         // pause and power-up screens draw over the last frame on the GE), so
         // the shown frame is not copied back into VRAM every flip.
         .frame_writeback = false,
-        // Its movies cannot be skipped on a PSP; START skips them here.
+        // START skips the game's pre-rendered movies.
         .start_skips_movies = true,
 
         // A European console: English, confirm on cross.
