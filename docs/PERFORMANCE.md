@@ -12,7 +12,7 @@ The framework changes live in PortableKit (`portablekit/`, the fork's `sparta` b
 | --- | --- | --- | --- |
 | — | Draw batching in the GE (PortableKit `9a3d053`) | **Done, released in 0.1.4** | Boat fight at ×2, frame skip off: 90–91% → **~100%** speed |
 | — | Render thread (`render-thread` branch) | **Parked** — correct but no gain | 90% → 76–92% |
-| 1 | Recompiler: dispatcher entries only where needed (PortableKit `dispatch-entries` branch) | **Runs on the Mac (title → movie → boat fight, nothing interpreted); phone not measured yet** | Estimated 1.5–2 ms a frame of game code |
+| 1 | Recompiler: dispatcher entries only where needed (PortableKit `dispatch-entries` branch) | **Done on its branch, measured: −6.5% cycles in game code** | Estimated 1.5–2 ms a frame of game code |
 | 2 | Fewer render target copies on the GPU | To do | Needed for ×3 on the phone |
 | 3 | Cache of static vertices on the GPU | To do | Estimated ~1 ms a frame, and memory bandwidth |
 | 4 | Recompiler: guest registers in locals | To do, large | The biggest possible gain in game code |
@@ -118,6 +118,10 @@ The analysis already computes most of this: `FunctionAnalysis::entry_labels` ("f
 **Measured so far, without running the game:** 1,040,000 words → 93,774 entries (9%) and about 200,000 blocks (20%). Units 0100 and 0200, compiled with `clang++ -O2` for arm64: 409 → 267 KB and 332 → 205 KB of code (−35 to −38%).
 
 **First run, Mac (M4, dev build, frame skip off):** title, movie and the boat fight look as before, and the log has no `[interpreter]` line: nothing ran without an entry. Guest time in the fight 1.4–2.9 ms a frame; there is no Mac baseline from the old corpus to compare with, so the number that matters is the phone's.
+
+**Phone result** (`scripts/bench_android.sh sparse profile SPARTA_HALF_RATE=0`, against `tooltest`, the draw-batching build, same settings): cycles spent in recompiled code itself 16.47 G → 15.39 G per 15 s (−6.5%, about 0.5 ms a frame); speed 97.7% → 99.3% average; nothing interpreted. Smaller than the code size suggested, because the guest registers still live in `AllegrexContext` (item 4) and because of returns, below.
+
+**Found while measuring: returns.** The hottest spot in the hottest unit (0172, 21% of the game thread) is the unit's `LOCAL_DISPATCH`: every `jr $ra` goes through the PC → entry table and one shared indirect branch, which predicts badly. Next step for this item: at a `jr $ra`, test first the continuations of the same-unit `jal`s to the function it belongs to (`if (jump_target == c) goto L_c;`, a few of them), and only then dispatch through the table. Each return then gets its own well-predicted direct branches.
 
 **Android compiler crash.** The NDK r27 clang 18 crashes (segfault in the greedy register allocator) on `generated_unit_0069.cpp` of the sparse corpus; Apple clang and every other unit are fine. `CMakeLists.txt` compiles that one unit with `-mllvm -regalloc=basic` on Android. To check all units after a regeneration, compile each with the NDK clang (3 minutes with 10 jobs); a newer NDK may not need it.
 
