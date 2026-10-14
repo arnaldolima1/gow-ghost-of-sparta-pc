@@ -35,7 +35,7 @@ Sparta is a native port made by **static recompilation**: the game's PSP code is
 | | |
 | --- | --- |
 | **macOS** | macOS 26, Apple Silicon (M4), Vulkan through MoltenVK: 60 fps and full speed throughout, up to ×5 internal resolution |
-| **Android** | Moto g84 5G (Snapdragon 695, Adreno 619, Android 15): full speed at ×2 most of the time, about 90% in the heaviest fights; 100% with *Limit to 30 fps* ([details](#android)) |
+| **Android** | Moto g84 5G (Snapdragon 695, Adreno 619, Android 15): full speed at ×2, 60 fps, in the boat's heaviest fights ([details](#android)) |
 | **Not tried yet** | Windows, Linux — PortableKit builds there; this port has never been run there |
 | **Release** | `UCES-01401`, European, v1.00 — the installer checks the disc id and the SHA-256 of the executable |
 | **Imports the game makes** | 206, of which 2 have no implementation (`sceKernelLoadExec`, `sceAtracSetAA3DataAndGetID`); neither has been seen called |
@@ -45,6 +45,10 @@ Sparta is a native port made by **static recompilation**: the game's PSP code is
 What is known to be missing is in [`docs/MISSING.md`](docs/MISSING.md).
 
 ## What's new
+
+Since 0.1.3:
+
+- **Much faster on phones.** The game draws its scenes as some 6500 tiny pieces a frame; the renderer now takes the pieces drawn in a row with the same state as one, as PPSSPP does, instead of doing its whole work for each. On a Moto g84 the boat's heaviest fights now run at full speed at ×2 without skipping frames (they ran at about 90%).
 
 Since 0.1.2:
 
@@ -66,11 +70,9 @@ Releases include `sparta-<version>-android-arm64.apk`: a 64-bit phone or tablet 
 
 | Video setting | Result |
 | --- | --- |
-| ×2 internal resolution (the default), Frame skip *Auto* | full speed; the picture drops a few frames in the heaviest fights |
-| ×2, *Limit to 30 fps* | a steady 30 frames a second at full speed |
-| ×3 | the GPU cannot keep up: 75–90% speed without frame skipping |
-
-The game's code and the renderer share one thread on Android, which is what limits the heaviest scenes; moving the renderer to a thread of its own is the next step.
+| ×2 internal resolution (the default) | full speed at 60 fps, with frames to spare |
+| ×2, *Limit to 30 fps* | a steady 30 frames a second, for a cooler, longer-lasting phone |
+| ×3 | the GPU is the limit: keep Frame skip on *Auto* |
 
 **Coming from 0.1.2 or older.** The app's id changed from `io.github.arnaldolima1.sparta` to `io.sparta`, so Android sees a new app: it installs beside the old one and starts empty. In the old app, **System › Export save…**; in the new one, **System › Import save…**; then uninstall the old one.
 
