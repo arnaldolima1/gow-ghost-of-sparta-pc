@@ -13,7 +13,7 @@ What this port does not have yet, most likely to matter first. Measured on macOS
 
 ## Graphics: where the work stopped
 
-A handoff for whoever picks this up next. The fixes are in the PortableKit fork's `sparta` branch.
+A handoff for whoever picks this up next. What comes after the bugs (mods, antialiasing) is in [ROADMAP.md](ROADMAP.md). The fixes are in the PortableKit fork's `sparta` branch.
 
 **Fixed (2026-10-14/15, tested on Windows by playing):**
 
