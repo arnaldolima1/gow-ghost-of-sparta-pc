@@ -74,6 +74,12 @@ Controles de PlayStation e Xbox também funcionam. <kbd>Esc</kbd> (ou L3+R3) abr
 
 O Sparta pode tocar versões mais nítidas e maiores das cutscenes no lugar das originais, mantendo o som do próprio jogo. Coloque `NOME.264` (para o vídeo `NOME` do jogo, ex.: `R6_INTRO.264` para a abertura) em `mods\movies` dentro da pasta de dados (`%APPDATA%\Sparta\UCES01401` no Windows). Gere os vídeos a partir do seu próprio disco com o [Kit Movie Tools](https://github.com/arnaldolima1/kit-movie-tools): extraia, remasterize e depois `python kit_movies.py install`. A aba **Mods** do launcher e do menu liga ou desliga e mostra quantos foram encontrados. Nela também ficam os pacotes de texturas e a opção de pular vídeos com START (ligada por padrão).
 
+## Substituir arquivos do jogo (mods)
+
+Um arquivo em `mods/files` dentro da pasta de dados é lido no lugar do arquivo do disco no mesmo caminho: `mods/files/PSP_GAME/USRDIR/DATA/ENGLISH/FRONTEND.BIN` substitui `PSP_GAME/USRDIR/DATA/ENGLISH/FRONTEND.BIN` do disco (maiúsculas ou minúsculas, tanto faz). É assim que entram uma tradução, modelos ou sons novos sem mexer na imagem do disco. Mods › *Arquivos substituídos* os desliga; *Abrir a pasta de arquivos* mostra onde ficam.
+
+O jogo sabe o tamanho de cada um dos seus arquivos, então o substituto seguro tem o mesmo tamanho do original; um arquivo maior ou menor ainda não foi testado.
+
 ## Situação
 
 O menu inicial, a cena de abertura e a primeira fase (o barco) rodam a **60 fps e velocidade total**:
