@@ -68,11 +68,11 @@ Precisa de um celular ou tablet de 64 bits com Android 10 ou mais novo e Vulkan.
 
 Controles de PlayStation e Xbox também funcionam. <kbd>Esc</kbd> (ou L3+R3) abre o menu, onde dá para trocar qualquer tecla. START pula uma cena. A interface está em inglês ou português do Brasil (Sistema › Idioma).
 
-**Pacotes de texturas HD** no formato do PPSSPP funcionam: Vídeo › *Importar pacote de texturas…*. Pacotes feitos para a versão norte-americana (`UCUS98737`) servem na europeia.
+**Pacotes de texturas HD** no formato do PPSSPP funcionam: Mods › *Importar pacote de texturas…* (eles ficam em `mods/textures` na pasta de dados). Pacotes feitos para a versão norte-americana (`UCUS98737`) servem na europeia.
 
 ## Vídeos remasterizados (mods)
 
-O Sparta pode tocar versões mais nítidas e maiores das cutscenes no lugar das originais, mantendo o som do próprio jogo. Coloque `NOME.264` (para o vídeo `NOME` do jogo, ex.: `R6_INTRO.264` para a abertura) em `mods\movies` dentro da pasta de dados (`%APPDATA%\Sparta\UCES01401` no Windows). Gere os vídeos a partir do seu próprio disco com o [Kit Movie Tools](https://github.com/arnaldolima1/kit-movie-tools): extraia, remasterize e depois `python kit_movies.py install`. A aba **Mods** do launcher e do menu liga ou desliga e mostra os que foram encontrados.
+O Sparta pode tocar versões mais nítidas e maiores das cutscenes no lugar das originais, mantendo o som do próprio jogo. Coloque `NOME.264` (para o vídeo `NOME` do jogo, ex.: `R6_INTRO.264` para a abertura) em `mods\movies` dentro da pasta de dados (`%APPDATA%\Sparta\UCES01401` no Windows). Gere os vídeos a partir do seu próprio disco com o [Kit Movie Tools](https://github.com/arnaldolima1/kit-movie-tools): extraia, remasterize e depois `python kit_movies.py install`. A aba **Mods** do launcher e do menu liga ou desliga e mostra quantos foram encontrados. Nela também ficam os pacotes de texturas e a opção de pular vídeos com START (ligada por padrão).
 
 ## Situação
 
