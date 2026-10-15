@@ -24,7 +24,8 @@
 # The result is release\windows\sparta-<version>-windows-x64.zip, SHA256SUMS,
 # and the source of the exact FFmpeg the zip ships (its LGPL licence asks for
 # it to be offered beside it). -Sdl3 names the unpacked SDL3-devel-*-VC
-# package, by default the newest ..\work\deps\SDL3-*.
+# package, by default the newest ..\work\deps\SDL3-*, else the pinned one,
+# downloaded into build\deps.
 param(
     [string]$Sdl3 = "",
     [int]$Jobs = 6
@@ -69,6 +70,24 @@ if (-not $Sdl3) {
     $Sdl3 = Get-ChildItem (Join-Path $repo '..\work\deps') -Directory -Filter 'SDL3-*' -ErrorAction SilentlyContinue |
         Where-Object { Test-Path (Join-Path $_.FullName 'cmake\SDL3Config.cmake') } |
         Sort-Object Name | Select-Object -Last 1 -ExpandProperty FullName
+}
+if (-not $Sdl3) {
+    # None at hand: the pinned SDL3-devel VC package, downloaded once into
+    # build\deps and checked against its SHA-256.
+    $SdlVersion = '3.4.18'
+    $SdlSha256 = '78d84602ae616cfe26b33a73b7d3b9b6b56e8a6650e53d92c9c6ca938f747acd'
+    $deps = Join-Path $repo 'build\deps'
+    $unpacked = Join-Path $deps "SDL3-$SdlVersion"
+    if (-not (Test-Path (Join-Path $unpacked 'cmake\SDL3Config.cmake'))) {
+        New-Item -ItemType Directory -Force -Path $deps | Out-Null
+        $zip = Join-Path $deps "SDL3-devel-$SdlVersion-VC.zip"
+        Write-Host "Downloading SDL3-devel-$SdlVersion-VC.zip"
+        Invoke-WebRequest -UseBasicParsing -OutFile $zip `
+            "https://github.com/libsdl-org/SDL/releases/download/release-$SdlVersion/SDL3-devel-$SdlVersion-VC.zip"
+        if ((Get-FileHash -Algorithm SHA256 $zip).Hash.ToLower() -ne $SdlSha256) { Fail "checksum mismatch for $zip" }
+        Expand-Archive -Force -Path $zip -DestinationPath $deps
+    }
+    $Sdl3 = $unpacked
 }
 if (-not $Sdl3 -or -not (Test-Path (Join-Path $Sdl3 'cmake\SDL3Config.cmake'))) { Fail 'no SDL3 package; pass -Sdl3 with the unpacked SDL3-devel-*-VC.zip' }
 $Sdl3 = (Resolve-Path $Sdl3).Path
