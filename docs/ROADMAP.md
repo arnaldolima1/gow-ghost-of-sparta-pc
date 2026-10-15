@@ -15,8 +15,8 @@ The **Mods** page (launcher and menu) already has: skipping movies with START, r
 
 ## Antialiasing (Video page)
 
-The renderer has none today: every pipeline and render target uses one sample (`VK_SAMPLE_COUNT_1_BIT` in `host/gpu/vulkan_renderer.cpp`). Internal resolution above ×1 already works as supersampling. An **Antialiasing** row would go on the Video page, under Picture, with a setting `video.antialiasing`:
+Every pipeline and render target uses one sample (`VK_SAMPLE_COUNT_1_BIT` in `host/gpu/vulkan_renderer.cpp`). Internal resolution above ×1 already works as supersampling. The **Antialiasing** row is on the Video page, under Picture, with the setting `video.antialiasing` (`SPARTA_ANTIALIASING=off|fxaa`):
 
 - **Off** (default).
-- **FXAA** (or SMAA): a pass over the finished picture before it is scaled to the window. Cheap, works with everything the game draws, fine on phones. Softens text a little. Do this first.
+- **FXAA**: **done** (PortableKit `0fafbdb`). The game's frame is copied into a sampled image at the internal resolution, smoothed by `host/gpu/shaders/fxaa.frag` (this project's own FXAA) into a second one, and that one is scaled to the window. Tested on the Mac: on the same cutscene frame at ×1, only edges change. **Not measured:** its GPU cost on the phone (one copy and one full-screen pass at the internal resolution a frame).
 - **MSAA ×2/×4**: multisampled render targets, resolved before the game's framebuffer is read back, extracted as a texture or presented. Smoother geometry edges, but it touches every render pass, the framebuffer extracts and the write-back to guest memory, and costs a lot of memory bandwidth on phones. Only after FXAA, and only if the edges still bother.

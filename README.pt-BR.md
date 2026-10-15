@@ -95,6 +95,7 @@ O que se sabe que falta: [docs/MISSING.md](docs/MISSING.md). Trabalho de desempe
 
 ## Novidades
 
+- **0.1.8 — Mods e bordas mais suaves.** Qualquer arquivo do disco pode ser substituído a partir de `mods/files` (a base para traduções e outros mods); *Vídeo › Antisserrilhamento* traz o FXAA; e o crash que às vezes acontecia ao fechar o programa foi corrigido.
 - **0.1.7 — Saves, sombras e vídeos remasterizados.** Salve e carregue em qualquer slot por uma lista; as sombras dos personagens ficam embaixo deles, no tamanho certo e sem o quadrado escuro; a janela cabe na tela; o launcher pode tocar música (`launcher/music.mp3`); e uma nova aba **Mods** toca cutscenes remasterizadas.
 - **0.1.6 — Windows.** A primeira versão para Windows, compilada com clang-cl.
 - **0.1.5 — Código do jogo mais leve.** O recompilador agora deixa o compilador C++ otimizar entre instruções do PSP; o código do próprio jogo gasta uns 10% menos ciclos de CPU.

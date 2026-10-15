@@ -95,6 +95,7 @@ What is known to be missing: [docs/MISSING.md](docs/MISSING.md). Performance wor
 
 ## What's new
 
+- **0.1.8 — Mods and smoother edges.** Any file of the disc can be replaced from `mods/files` (the base for translations and other mods); *Video › Antialiasing* adds FXAA; and the occasional crash as the program quits is fixed.
 - **0.1.7 — Saves, shadows and remastered movies.** Save and load in any slot from a list; character shadows sit under them at the right size, without a dark box; the window fits the screen; the launcher can play music (`launcher/music.mp3`); and a new **Mods** page plays remastered cutscenes.
 - **0.1.6 — Windows.** The first Windows build, compiled with clang-cl.
 - **0.1.5 — Lighter game code.** The recompiler now lets the C++ compiler optimize across PSP instructions; the game's own code takes about 10% fewer CPU cycles.
