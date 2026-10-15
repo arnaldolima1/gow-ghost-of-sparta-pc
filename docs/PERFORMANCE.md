@@ -15,12 +15,20 @@ The framework changes live in PortableKit (`portablekit/`, the fork's `sparta` b
 | 1 | Recompiler: dispatcher entries only where needed (`--sparse-entries`) | **Done, released in 0.1.5** | Cycles in game code −6.5% |
 | 1b | Recompiler: return hints (`--return-hints`), memory view in a local | **Done, released in 0.1.5** | A further −3.2%: −9.6% in all against 0.1.4 |
 | 2 | Fewer render target copies on the GPU | To do | Needed for ×3 on the phone |
-| 3 | Cache of static vertices on the GPU | To do | Estimated ~1 ms a frame, and memory bandwidth |
+| 3 | Cache of static vertices | **CPU-side cache tried in Olympus: does not pay** (see [item 3](#3-cache-of-static-vertices)); a GPU-resident one is still open | — |
 | 4 | Recompiler: guest registers in locals | **Experiment done: does not pay as planned** (see [item 4](#4-guest-registers-in-locals-experiment-done)) | Static: more instructions and spills, not fewer |
 | 4b | Guest memory accesses without a call in them | To decide — what item 4 needs first | Not measured |
-| 5 | Small per-draw costs in the renderer | To do | A few tenths of a millisecond each |
+| 5 | Small per-draw costs in the renderer | **Partly done** (PortableKit `73a6d93`: list reads, triangle indices); **Sparta not rebuilt with it yet** | Measured in Olympus: ~0.6 ms a frame |
 
-## Start here (state on 2026-10-14, evening)
+## Start here (state on 2026-10-15)
+
+**Olympus (Chains of Olympus, same engine and framework) carried this work on 2026-10-15**; its [docs/PERFORMANCE.md](https://github.com/arnaldolima1/gow-chains-of-olympus-pc/blob/main/docs/PERFORMANCE.md) has the details and the phone profiles. For Sparta:
+
+- **PortableKit `73a6d93`** (on the fork's `sparta` branch): display lists read through a host window instead of `GuestMemory::contains` + `load32` per command word (`<prefix>_NO_LIST_WINDOW` turns it off), and triangle indices written in place with the batch's base added (`append_triangle_indices`). On the phone in Olympus: list reads 0.83 → 0.17 Gcycles in 15 s, index building 1.39 → 0.85. **Sparta's submodule is not moved to it yet:** move it, build, check captures on the Mac and the boat bench on the phone.
+- **Tried in Olympus and dropped:** a CPU-side cache of decoded vertices for unskinned draws (PortableKit branch `decode-cache-experiment`; exact, 63% hits, but saves about what it costs: the expensive decode is skinning), and GPU vertex decode (`<prefix>_GPU_DECODE=1`: 76–83% speed, the GPU at ~17 ms, as here before).
+- **Recommended next, for both games:** item 4's `cold` variant measured at run time on the phone (Olympus's item 1), then NEON skinning (`decode_run<3,1,3>` is about twice the unskinned decode).
+
+### Earlier (2026-10-14, evening)
 
 - **Released: 0.1.5** (macOS and Android), with draw batching (0.1.4) and items 1 and 1b. Sparta `main` and the PortableKit fork's `sparta` branch have everything; PR #44 to TeamGDB carries the PortableKit side (its description predates items 1 and 1b).
 - **On the phone at ×2, frame skip off,** the boat fight holds 99–100% speed; the game thread is about half recompiled game code (~8 ms) and half display lists (~6–7 ms). At ×3 the GPU is the limit.
@@ -155,6 +163,8 @@ The perf line shows about 34–37 render target copies a frame (`copies`), most 
 
 ### 3. Cache of static vertices
 
+**Tried in Olympus, CPU side only (2026-10-15): does not pay.** Decoded vertices of unskinned draws kept with their guest bytes and copied when the bytes are unchanged (PortableKit branch `decode-cache-experiment`). Exact and 63% of lookups hit, but the unskinned decode barely moved and the lookup, compare and copy cost what they saved: the hits are small draws, and most decode time is skinning. Only the GPU-resident form below could pay, and it is a much larger change (batching, frame interpolation and draw replay assume vertices pass through the CPU each frame).
+
 Keep the converted vertices of draws whose source bytes are unchanged (hash of the raw vertex bytes with the vertex type and count) in a persistent GPU buffer, and draw from there instead of decoding, converting and uploading them again. Skinned draws change every frame and stay as they are. PPSSPP has such a cache. Saves decode (~2.9 G cycles in 15 s), part of the conversion and memory bandwidth, which is what this phone is short of.
 
 ### 4. Guest registers in locals (experiment done)
@@ -186,7 +196,7 @@ Other loads (from `ctx` and guest memory) fall with `blocks` (arm64: −22% and 
 ### 5. Small per-draw costs
 
 From the profiles, each worth a few tenths of a millisecond:
-- `triangle_indices` for unindexed prims depends only on the primitive and the count: cache it.
+- ~~`triangle_indices`~~: done differently in PortableKit `73a6d93`, written in place with the base added (and display list words read through a host window). Measured in Olympus.
 - `find_framebuffer_texture`: the targets are all in VRAM; a texture in main RAM can be rejected before looking at any target.
 - `multiply(view, world)` for every draw: compute it when either matrix changes.
 - `texture_descriptor`: the per-list memo is a `std::map` keyed by seven fields.
