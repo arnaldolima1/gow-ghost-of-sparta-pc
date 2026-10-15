@@ -89,6 +89,7 @@ O que se sabe que falta: [docs/MISSING.md](docs/MISSING.md). Trabalho de desempe
 
 ## Novidades
 
+- **0.1.7 — Saves, sombras e vídeos remasterizados.** Salve e carregue em qualquer slot por uma lista; as sombras dos personagens ficam embaixo deles, no tamanho certo e sem o quadrado escuro; a janela cabe na tela; o launcher pode tocar música (`launcher/music.mp3`); e uma nova aba **Mods** toca cutscenes remasterizadas.
 - **0.1.6 — Windows.** A primeira versão para Windows, compilada com clang-cl.
 - **0.1.5 — Código do jogo mais leve.** O recompilador agora deixa o compilador C++ otimizar entre instruções do PSP; o código do próprio jogo gasta uns 10% menos ciclos de CPU.
 - **0.1.4 — Mais rápido no celular.** Desenhos pequenos seguidos com o mesmo estado viram um só; as lutas mais pesadas do barco ficam em velocidade total num Moto g84.
