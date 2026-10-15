@@ -70,6 +70,10 @@ PlayStation and Xbox gamepads work too. <kbd>Esc</kbd> (or L3+R3) opens the menu
 
 **HD texture packs** in PPSSPP's format work: Video › *Import texture pack…*. Packs made for the North American release (`UCUS98737`) fit the European one.
 
+## Remastered movies (mods)
+
+Sparta can play sharper, larger versions of the cutscenes in place of the originals, keeping the game's own sound. Put `NAME.264` (for the game's movie `NAME`, e.g. `R6_INTRO.264` for the opening) in `mods\movies` inside the data folder (`%APPDATA%\Sparta\UCES01401` on Windows). Make them from your own disc with [Kit Movie Tools](https://github.com/arnaldolima1/kit-movie-tools): extract, upscale, then `python kit_movies.py install`. The **Mods** page in the launcher and the menu turns them on or off and lists the ones found.
+
 ## Status
 
 The title menu, the opening cutscene and the first level (the boat) play at **60 fps and full speed**:
