@@ -7,8 +7,25 @@ What this port does not have yet, most likely to matter first. Measured on macOS
 1. The installer accepts the European disc (`UCES-01401`), decrypts `EBOOT.BIN` and the one PGD file (`ATT_000_STARTSCREEN.BIN`).
 2. The logos, the title menu and the opening cutscene play at 60 frames a second and full speed, with no audio underruns (`SPARTA_PERF=log`, `SPARTA_TRACE_STALLS=1`, `SPARTA_TRACE_AUDIO=1`).
 3. A new game starts, and the first level (the boat) was played by hand for a few minutes.
+4. On Windows (0.1.7, AMD Radeon RX 7600) the game was played further, past the boat, saving and loading in several slots from the save list.
 
-**Not verified:** anything past the start of the first level; saving and loading a game; movies other than the opening; Windows and Linux.
+**Not verified:** most of the game past the first levels; movies other than the opening and `R6_AST_2`; Linux.
+
+## Graphics: where the work stopped
+
+A handoff for whoever picks this up next. The fixes are in the PortableKit fork's `sparta` branch.
+
+**Fixed (2026-10-14/15, tested on Windows by playing):**
+
+- *Shadows far from the characters, and too large.* The GE's texture mapping registers (`0xC0` TMAP, `0xC1` TEXSHADELS) were ignored, so every draw took its vertices' UVs. The game projects each character's shadow map onto the floor with the texture matrix (TMAP mode 1, position source). PortableKit `76f8443` implements UV, texture-matrix projection and shade (environment) mapping.
+- *A dark rectangle around every shadow, and white lines along edges.* Through-mode vertices without a colour must take the material colour even when the lighting enable is left on; the renderer drew them white. The game clears its shadow maps with such sprites, so each map got a white border. PortableKit `cb96bd2`. The player confirmed both are gone.
+
+**Open:**
+
+1. **"Textures jumping" (the main open bug).** In one area the player reached (past the boat; ask the player for a save near it), parts of the map flash, or a texture seems to jump to another place for a frame, now and then. Not reproduced here yet. First thing to try: set *Video › Frame rate* to 30 (`video.frame_rate`, which turns frame interpolation off). If the flashes stop, the cause is interpolation (blended movement between two frames, probably for draws matched to the wrong draw of the previous frame); if not, look at framebuffer extracts and render-target aliasing. Switches that help: `SPARTA_TRACE_FB_TEXTURES=1`, `SPARTA_NO_TARGET_ALIASES=1`, `SPARTA_NO_TARGET_CLEAR=1`, `SPARTA_NO_SPRITE_CLAMP=1`, `SPARTA_NO_LIGHTING=1`. Capture with `SPARTA_INPUT_SCRIPT` (`shot`, `pad`, `key`, `drop`, `quit` steps) and `SPARTA_SCREENSHOT_DIR`; run on a copy of the data folder (`SPARTA_DATA_DIR`) so the player's saves stay untouched.
+2. **Dark bands at the foot of some walls** (below).
+3. **The AMD Vulkan driver (`amdvlk64.dll`) sometimes crashes as the program exits**, after the game has stopped. Not looked into.
+4. **Remastered movies** (`mods/movies/NAME.264`): the subtitles the game draws over a movie should stay on top of the replacement; not checked. Colours of the replacement against the original not compared closely.
 
 ## Known gaps
 
@@ -30,4 +47,4 @@ The game probes `ms0:/PSP/GAME/UCUS98737/dlcarena.EDAT` and `dlccostume.EDAT` an
 
 ## Platforms
 
-macOS on Apple Silicon and Android (a Moto g84, Adreno 619) have been run. On that phone the boat holds full speed at ×2 internal resolution most of the time and dips to about 90% in its heaviest fights, where the game's code and the renderer share one thread; *Limit to 30 fps* holds 100% there. At ×3 the GPU cannot keep up. PortableKit builds on Windows and Linux; this port has not been run there.
+macOS on Apple Silicon, Android (a Moto g84, Adreno 619) and Windows 11 (clang-cl, AMD Radeon RX 7600: 60 fps, full speed) have been run. On that phone the boat holds full speed at ×2 internal resolution most of the time and dips to about 90% in its heaviest fights, where the game's code and the renderer share one thread; *Limit to 30 fps* holds 100% there. At ×3 the GPU cannot keep up. PortableKit builds on Linux; this port has not been run there.
