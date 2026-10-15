@@ -28,6 +28,10 @@ Rasterizes the game's text. Copyright (c) 2017 Sean Barrett. Used under the publ
 
 Read and write the PNG images of HD texture packs. Copyright (c) 2017 Sean Barrett. Used under the same public-domain dedication as stb_truetype above. <https://github.com/nothings/stb>
 
+### dr_mp3 0.7.4
+
+Plays a music file the player puts in the launcher's folder (none is shipped). By David Reid, based on minimp3. Released into the public domain under the Unlicense, or under the MIT No Attribution license, at the user's choice; the license texts are at the end of `dr_mp3.h`. Commit `dfe8377631000664666519fdb83da193fd8037f4`. <https://github.com/mackron/dr_libs>
+
 ### xxHash 0.8.3
 
 Hashes textures for HD texture packs. Copyright (c) 2012-2021 Yann Collet. BSD 2-Clause License: `xxHash-LICENSE.txt`. <https://github.com/Cyan4973/xxHash>
