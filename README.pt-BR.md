@@ -78,7 +78,7 @@ O Sparta pode tocar versões mais nítidas e maiores das cutscenes no lugar das 
 
 Um arquivo em `mods/files` dentro da pasta de dados é lido no lugar do arquivo do disco no mesmo caminho: `mods/files/PSP_GAME/USRDIR/DATA/ENGLISH/FRONTEND.BIN` substitui `PSP_GAME/USRDIR/DATA/ENGLISH/FRONTEND.BIN` do disco (maiúsculas ou minúsculas, tanto faz). É assim que entram uma tradução, modelos ou sons novos sem mexer na imagem do disco. Mods › *Arquivos substituídos* os desliga; *Abrir a pasta de arquivos* mostra onde ficam.
 
-O jogo sabe o tamanho de cada um dos seus arquivos, então o substituto seguro tem o mesmo tamanho do original; um arquivo maior ou menor ainda não foi testado.
+O substituto pode ser maior ou menor que o original: o jogo pega o tamanho de cada arquivo da listagem do disco, que informa o do substituto.
 
 ## Situação
 

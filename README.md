@@ -78,7 +78,7 @@ Sparta can play sharper, larger versions of the cutscenes in place of the origin
 
 A file in `mods/files` inside the data folder is read in place of the disc's file at the same path: `mods/files/PSP_GAME/USRDIR/DATA/ENGLISH/FRONTEND.BIN` replaces `PSP_GAME/USRDIR/DATA/ENGLISH/FRONTEND.BIN` on the disc (upper or lower case, either works). It is how a translation, new models or sounds are put in without touching the disc image. Mods › *Replaced files* turns them off; *Open the files folder* shows where they go.
 
-The game knows how large each of its files is, so a replacement the same size as the original is the safe one; a larger or smaller file has not been tried yet.
+A replacement may be larger or smaller than the original: the game takes each file's size from the disc's listing, which reports the replacement's.
 
 ## Status
 
